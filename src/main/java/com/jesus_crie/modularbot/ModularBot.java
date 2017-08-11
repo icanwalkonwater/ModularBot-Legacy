@@ -10,7 +10,6 @@ import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.hooks.EventListener;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -47,7 +46,7 @@ public class ModularBot {
      * @param useAudio if the audio must be enabled.
      */
     ModularBot(String token, ConfigHandler config, Logger logger, boolean useAudio) {
-        Thread.currentThread().setName(f("%s Main #%s", config.getAppName(), Thread.currentThread().getId()));
+        Thread.currentThread().setName(f("%s #%s", config.getAppName(), Thread.currentThread().getId()));
 
         Objects.requireNonNull(token, "Token missing !");
         Objects.requireNonNull(config, "Config missing !");
@@ -113,7 +112,6 @@ public class ModularBot {
                     .setEventManager(new ModularEventManager())
                     .setIdle(false)
                     .setGame(Status.STARTING)
-                    .addEventListener((EventListener) event -> logger.info("Listener", event.toString()))
                     .buildBlocking());
         }
 

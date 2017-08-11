@@ -10,7 +10,6 @@ public class ModularEventManager extends InterfacedEventManager {
     public void handle(Event event) {
         if (Stats.isEnable())
             Stats.incrementJDAEvent();
-        //TODO rename thread.
         super.handle(event);
     }
 }

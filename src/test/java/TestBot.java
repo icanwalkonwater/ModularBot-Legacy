@@ -8,7 +8,6 @@ public class TestBot {
 
     public static void main(String[] args) {
         ConfigHandler config = new SimpleConfig("./config.json", Version.of(1, 0, 0, 0), "TestModular");
-        print(config.getAppName());
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()
