@@ -17,6 +17,12 @@ public interface ConfigHandler {
     String getPrefix();
 
     /**
+     * Get the name of the application.
+     * @return
+     */
+    String getAppName();
+
+    /**
      * Used to save the config.
      * @throws IOException if there's a problem.
      */

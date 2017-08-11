@@ -17,6 +17,10 @@ public class Version {
         this.build = build;
     }
 
+    public static Version of(int major, int minor, int revision, int build) {
+        return new Version(major, minor, revision, build);
+    }
+
     /**
      * @return the major version.
      */

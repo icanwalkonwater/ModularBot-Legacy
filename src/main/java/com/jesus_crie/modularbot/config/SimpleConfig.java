@@ -17,15 +17,13 @@ public class SimpleConfig implements ConfigHandler {
 
     private final File configFile;
     private final Version version;
+    private final String appName;
     private final HashMap<String, JsonNode> settings = new HashMap<>();
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    public SimpleConfig(String configFile, Version version) throws IOException {
+    public SimpleConfig(String configFile, Version version, String appName) {
         this.version = version;
+        this.appName = appName;
         this.configFile = new File(configFile);
-        if (!this.configFile.exists())
-            this.configFile.createNewFile();
-        load();
     }
 
     @Override
@@ -36,6 +34,11 @@ public class SimpleConfig implements ConfigHandler {
     @Override
     public String getPrefix() {
         return "/";
+    }
+
+    @Override
+    public String getAppName() {
+        return appName;
     }
 
     /**
@@ -65,14 +68,22 @@ public class SimpleConfig implements ConfigHandler {
         return settings.get(name);
     }
 
+    private void checkAndCreateFile() throws IOException {
+        if (!this.configFile.exists())
+            this.configFile.createNewFile();
+    }
+
     @Override
     public void load() throws IOException {
+        checkAndCreateFile();
+
         JsonNode node = mapper.readValue(configFile, JsonNode.class);
         node.fields().forEachRemaining(entry -> settings.put(entry.getKey(), entry.getValue()));
     }
 
     @Override
     public void save() throws IOException {
+        checkAndCreateFile();
         mapper.writeValue(configFile, settings);
     }
 }

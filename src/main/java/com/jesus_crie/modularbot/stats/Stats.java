@@ -48,20 +48,20 @@ public class Stats {
         return new Bundle(commandExecuted.get(),
                 jdaEvent.get(),
                 ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getJDA().getGuilds().size(),
-                        Collectors.summingInt(i -> i)
+                        shard -> shard.getGuilds().size(),
+                        Collectors.summingInt(i -> (int) i)
                 ),
                 ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getJDA().getUsers().size(),
-                        Collectors.summingInt(i -> i)
+                        shard -> shard.getUsers().size(),
+                        Collectors.summingInt(i -> (int) i)
                 ),
                 ManagementFactory.getThreadMXBean().getThreadCount(),
                 ModularBot.instance().getShards().size(),
                 ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getJDA().getGuilds().stream()
+                        shard -> shard.getGuilds().stream()
                                 .mapToInt(g -> g.getAudioManager().isConnected() ? 1 : 0)
                                 .sum(),
-                        Collectors.summingInt(i -> i)
+                        Collectors.summingInt(i -> (int) i)
                 ),
                 Runtime.getRuntime().freeMemory(),
                 Runtime.getRuntime().maxMemory(),
@@ -129,7 +129,7 @@ public class Stats {
          */
         public final int CPU_AVAILABLE;
 
-        private Bundle(int cmd, int jda, int guild, int users, int threads, int shard, int audio, long memTotal, long memUsed, int procs) {
+        private Bundle(int cmd, int jda, Integer guild, Integer users, int threads, int shard, int audio, long memTotal, long memUsed, int procs) {
             UPTIME = System.currentTimeMillis() - start;
             COMMAND_EXECUTED = cmd;
             JDA_EVENT = jda;
