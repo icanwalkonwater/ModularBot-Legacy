@@ -42,7 +42,7 @@ public class ModularBot {
     /**
      * Package-Private builder.
      * @param token the token provided.
-     * @param config a custom {@link com.jesus_crie.modularbot.config.ConfigHandler ConfigHandler}.
+     * @param config a custom {@link ConfigHandler}.
      * @param useAudio if the audio must be enabled.
      */
     ModularBot(String token, ConfigHandler config, Logger logger, boolean useAudio) {
@@ -158,7 +158,7 @@ public class ModularBot {
 
     /**
      * Get an unmodifiable list of all shards
-     * @return an instance of {@link java.util.Collections.UnmodifiableList UnmodifiableList} that contains a copy of all shards.
+     * @return an instance of {@link Collections.UnmodifiableList} that contains a copy of all shards.
      */
     public List<ModularShard> getShards() {
         return Collections.unmodifiableList(shards);
@@ -170,7 +170,7 @@ public class ModularBot {
 
     /**
      * Get the config handler of the application.
-     * @return an implementation of {@link com.jesus_crie.modularbot.config.ConfigHandler ConfigHandler} that is currently used by the application.
+     * @return an implementation of {@link ConfigHandler} that is currently used by the application.
      */
     public ConfigHandler getConfig() {
         return config;
@@ -181,7 +181,7 @@ public class ModularBot {
      * Mainly used to collect stats.
      * @param action used to get the needed object in each shard.
      * @param <T> the type of Object needed.
-     * @return a {@link java.util.List List} with the needed T object of each shard.
+     * @return a {@link List List} with the needed T object of each shard.
      */
     public <T> List<T> collectShardInfos(Function<ModularShard, T> action) {
         return shards.stream()
@@ -227,16 +227,16 @@ public class ModularBot {
     }
 
     /**
-     * Get the current instance of {@link com.jesus_crie.modularbot.ModularBot ModularBot}.
-     * @return a possibly-null instance of {@link com.jesus_crie.modularbot.ModularBot ModularBot}.
+     * Get the current instance of {@link ModularBot}.
+     * @return a possibly-null instance of {@link ModularBot} (if called during the constructor).
      */
     public static ModularBot instance() {
         return instance;
     }
 
     /**
-     * Get the current implementation of the {@link com.jesus_crie.modularbot.log.Logger Logger} that is used by the application.
-     * @return an implementation of {@link com.jesus_crie.modularbot.log.Logger Logger}.
+     * Get the current implementation of the {@link Logger} that is used by the application.
+     * @return an implementation of {@link Logger}.
      */
     public static Logger LOGGER() {
         return logger;

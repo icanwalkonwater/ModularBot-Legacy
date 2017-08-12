@@ -33,12 +33,13 @@ public class Log {
     public final String MESSAGE;
 
     /**
-     * An optionnal object associated with the log.
+     * An optional object associated with the log.
      * May be null.
      */
     public final Object CONTENT;
 
     /**
+     * Package-Private
      * Create an instance representing a specific log.
      * @param level the severity of the log.
      * @param prefix (optional) refer to the source of the log.
@@ -56,6 +57,11 @@ public class Log {
         CONTENT = content;
     }
 
+    /**
+     * Used to print the log.
+     * If you want to change the way that logs are written, override this method.
+     * @return a String representing the log.
+     */
     @Override
     public String toString() {
         String format = "[%1$s] [%2$s] [%3$s] " + (PREFIX == null ? "" : "[%4$s] ") + "%5$s" + (CONTENT == null ? "" : ": %6$s");

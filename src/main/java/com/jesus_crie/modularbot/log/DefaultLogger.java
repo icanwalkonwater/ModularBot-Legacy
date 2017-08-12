@@ -9,6 +9,9 @@ public class DefaultLogger implements Logger {
 
     protected final List<LogListener> listeners = new ArrayList<>();
 
+    /**
+     * @see Logger#handle(LogLevel, String, String, Object)
+     */
     @Override
     public void handle(LogLevel level, String source, String message, Object content) {
         Log log = new Log(level, source, message, content);
@@ -19,11 +22,17 @@ public class DefaultLogger implements Logger {
             listeners.forEach(l -> l.onLog(log));
     }
 
+    /**
+     * @see Logger#registerListener(LogListener...)
+     */
     @Override
     public void registerListener(LogListener... listeners) {
         Collections.addAll(this.listeners, listeners);
     }
 
+    /**
+     * @see Logger#unregisterListener(LogListener...)
+     */
     @Override
     public void unregisterListener(LogListener... listeners) {
         this.listeners.removeAll(Arrays.asList(listeners));

@@ -5,8 +5,8 @@ import java.io.IOException;
 public interface ConfigHandler {
 
     /**
-     * Get a {@link com.jesus_crie.modularbot.config.Version Version} that represent the version of the application.
-     * @return the version object.
+     * Get a {@link Version} that represent the version of the application.
+     * @return a version object.
      */
     Version getVersion();
 
@@ -18,7 +18,7 @@ public interface ConfigHandler {
 
     /**
      * Get the name of the application.
-     * @return
+     * @return the given appName.
      */
     String getAppName();
 

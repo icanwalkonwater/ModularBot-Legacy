@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.HashMap;
 
 /**
- * A simple config wrapper that load config from a file called "config.json" using an {@link com.fasterxml.jackson.databind.ObjectMapper ObjectMapper}.
- * It can store any object but for complex object it's better to use the Jackson Databind serialization system with {@link com.fasterxml.jackson.databind.ser.std.StdSerializer StdSerializer}.
+ * A simple config wrapper that load config from a file called "config.json" using an {@link ObjectMapper}.
+ * It can store any object but for complex object it's better to use the Jackson Databind serialization system with {@link com.fasterxml.jackson.databind.ser.std.StdSerializer}.
  */
 public class SimpleConfig implements ConfigHandler {
 
@@ -26,16 +26,25 @@ public class SimpleConfig implements ConfigHandler {
         this.configFile = new File(configFile);
     }
 
+    /**
+     * @see ConfigHandler#getVersion()
+     */
     @Override
     public Version getVersion() {
         return version;
     }
 
+    /**
+     * @see ConfigHandler#getPrefix()
+     */
     @Override
     public String getPrefix() {
         return "/";
     }
 
+    /**
+     * @see ConfigHandler#getAppName()
+     */
     @Override
     public String getAppName() {
         return appName;
@@ -62,17 +71,25 @@ public class SimpleConfig implements ConfigHandler {
     /**
      * Used to get a setting as a complex object (a list for example)
      * @param name The key name.
-     * @return the value as a {@link com.fasterxml.jackson.databind.JsonNode JsonNode} or null if not found.
+     * @return the value as a {@link JsonNode} or null if not found.
      */
     public JsonNode getSettingAsJsonObject(String name) {
         return settings.get(name);
     }
 
-    private void checkAndCreateFile() throws IOException {
-        if (!this.configFile.exists())
-            this.configFile.createNewFile();
+    /**
+     * Create the config file only if it doesn't exist yet.
+     * @throws IOException if something is wrong.
+     * @return true if the file has been successfully created.
+     *      False if the file already exist.
+     */
+    private boolean checkAndCreateFile() throws IOException {
+        return this.configFile.createNewFile();
     }
 
+    /**
+     * @see ConfigHandler#load()
+     */
     @Override
     public void load() throws IOException {
         checkAndCreateFile();
@@ -81,6 +98,9 @@ public class SimpleConfig implements ConfigHandler {
         node.fields().forEachRemaining(entry -> settings.put(entry.getKey(), entry.getValue()));
     }
 
+    /**
+     * @see ConfigHandler#save()
+     */
     @Override
     public void save() throws IOException {
         checkAndCreateFile();
