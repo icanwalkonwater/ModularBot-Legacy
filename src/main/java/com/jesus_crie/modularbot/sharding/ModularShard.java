@@ -100,11 +100,6 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
         return isReady;
     }
 
-    @Override
-    public ShardInfo getShardInfo() {
-        return super.getShardInfo();
-    }
-
     /**
      * Get the {@link java.util.concurrent.ExecutorService} use to run commands.
      * @return a {@link ThreadPoolExecutor} used to run commands.
