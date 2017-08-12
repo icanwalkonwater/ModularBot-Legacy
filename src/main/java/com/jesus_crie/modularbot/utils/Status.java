@@ -6,5 +6,4 @@ public class Status {
 
     public static final Game STARTING = Game.of("Starting...");
     public static final Game STOPPING = Game.of("Stopping...");
-    public static final Game READY = Game.of("Ready !");
 }

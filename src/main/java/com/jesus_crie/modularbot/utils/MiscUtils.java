@@ -34,7 +34,7 @@ public class MiscUtils {
      *      %nano% -> nanoseconds of the minute in 9 digits.
      * @param timestamp the timestamp to format.
      * @param pattern the pattern to use.
-     * @return
+     * @return a String of the formatted timestamp that as given.
      */
     public static String properTimestamp(long timestamp, String pattern) {
         return f(pattern.replaceAll("\\{day}", "%1\\$td")

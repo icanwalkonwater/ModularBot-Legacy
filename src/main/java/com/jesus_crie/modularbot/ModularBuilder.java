@@ -11,8 +11,7 @@ import com.jesus_crie.modularbot.stats.Stats;
 
 public class ModularBuilder {
 
-    private String token;
-    private String appName;
+    private final String token;
     private ConfigHandler config;
     private Logger logger;
     private boolean useAudio = false;

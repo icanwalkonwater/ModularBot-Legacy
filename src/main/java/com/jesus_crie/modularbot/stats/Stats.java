@@ -120,7 +120,7 @@ public class Stats {
 
         /**
          * The total amount of unique users of each shard.
-         * If an user is in 2 guild wich are in 2 different shards, he will be counted twice.
+         * If an user is in 2 guild which are in 2 different shards, he will be counted twice.
          */
         public final int TOTAL_USERS;
 

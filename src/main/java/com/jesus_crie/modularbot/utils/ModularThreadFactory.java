@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.utils;
 
 import com.jesus_crie.modularbot.sharding.ModularShard;
 
+import java.util.Objects;
 import java.util.concurrent.ThreadFactory;
 
 public class ModularThreadFactory implements ThreadFactory {
@@ -24,7 +25,8 @@ public class ModularThreadFactory implements ThreadFactory {
      * @see ThreadFactory#newThread(Runnable)
      */
     @Override
-    public Thread newThread(Runnable r) {
+    public Thread newThread(final Runnable r) {
+        Objects.requireNonNull(r);
         final Thread thread = new Thread(r);
         thread.setName(identifier + " #" + thread.getId());
         thread.setDaemon(isDaemon);

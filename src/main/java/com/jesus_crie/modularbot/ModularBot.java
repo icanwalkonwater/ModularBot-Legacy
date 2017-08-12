@@ -78,10 +78,10 @@ public class ModularBot {
      */
     public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
         logger.info("Start", "Connecting to discord and initializing shards...");
-        logger.info("Start", "Querying recommanded shard...");
+        logger.info("Start", "Querying recommended shard...");
         maxShard = getShardMax();
 
-        logger.info("Start", f("Attemping to start %s shards...", maxShard));
+        logger.info("Start", f("Attempting to start %s shards...", maxShard));
         restartShards();
     }
 
@@ -195,7 +195,7 @@ public class ModularBot {
      * @param action used to get the needed object in each shard.
      * @param mapper used to merge each object into one.
      * @param <T> the type of Object needed.
-     * @return an object T with contains merged datas from each shard.
+     * @return an object T with contains merged data from each shard.
      */
     public <T> T collectCumulativeShardInfos(Function<ModularShard, T> action, Collector<T, ?, T> mapper) {
         return shards.stream()

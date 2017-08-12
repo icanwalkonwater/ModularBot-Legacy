@@ -4,6 +4,7 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 
+@SuppressWarnings("WeakerAccess")
 public class TestBot {
 
     public static void main(String[] args) {
