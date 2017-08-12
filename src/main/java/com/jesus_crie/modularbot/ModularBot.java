@@ -1,7 +1,9 @@
 package com.jesus_crie.modularbot;
 
 import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.listener.CommandHandler;
 import com.jesus_crie.modularbot.log.Logger;
+import com.jesus_crie.modularbot.manager.CommandManager;
 import com.jesus_crie.modularbot.manager.ModularEventManager;
 import com.jesus_crie.modularbot.sharding.ModularJDABuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -10,6 +12,7 @@ import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.core.utils.Checks;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -20,7 +23,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
@@ -30,6 +32,9 @@ import java.util.stream.Collectors;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
+/**
+ * Can only be instantiated one time.
+ */
 public class ModularBot {
 
     private static ModularBot instance;
@@ -40,6 +45,7 @@ public class ModularBot {
     private int maxShard;
 
     private final ConfigHandler config;
+    private final CommandManager commandManager;
     private final List<ModularShard> shards;
 
     private final ScheduledThreadPoolExecutor mightyPool;
@@ -50,19 +56,22 @@ public class ModularBot {
      * @param config a custom {@link ConfigHandler}.
      * @param useAudio if the audio must be enabled.
      */
-    ModularBot(String token, ConfigHandler config, Logger logger, boolean useAudio) {
-        Thread.currentThread().setName(f("%s #%s", config.getAppName(), Thread.currentThread().getId()));
+    ModularBot(String token, ConfigHandler config, Logger logger, CommandHandler command, boolean useAudio) {
+        Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
             Thread t = new Thread(r);
-            t.setName(f("%s #%s", config.getAppName(), Thread.currentThread().getId()));
+            t.setName(f("%s Mighty #%s", config.getAppName(), Thread.currentThread().getId()));
             return t;
         });
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("UNCAUGHT EXCEPTION", e));
 
-        Objects.requireNonNull(token, "Token missing !");
-        Objects.requireNonNull(config, "Config missing !");
-        Objects.requireNonNull(logger, "Logger missing !");
+        Checks.notEmpty(token, "token");
+        Checks.notNull(config, "config");
+        Checks.notNull(logger, "logger");
+        Checks.notNull(command, "command");
+
+        commandManager = new CommandManager(command);
 
         instance = this;
         shards = new ArrayList<>();
@@ -205,19 +214,11 @@ public class ModularBot {
     }
 
     /**
-     * Get the config handler of the application.
-     * @return an implementation of {@link ConfigHandler} that is currently used by the application.
-     */
-    public ConfigHandler getConfig() {
-        return config;
-    }
-
-    /**
      * Used to collect infos from all shards by shards.
      * Mainly used to collect stats.
      * @param action used to get the needed object in each shard.
      * @param <T> the type of Object needed.
-     * @return a {@link List List} with the needed T object of each shard.
+     * @return a {@link List} with the needed T object of each shard.
      */
     public <T> List<T> collectShardInfos(Function<ModularShard, T> action) {
         return shards.stream()
@@ -270,7 +271,7 @@ public class ModularBot {
      * Need to be used for global operation.
      * @return the might thread pool.
      */
-    public ScheduledThreadPoolExecutor getMightPool() {
+    public ScheduledThreadPoolExecutor getMightyPool() {
         return mightyPool;
     }
 
@@ -291,7 +292,23 @@ public class ModularBot {
      * Get the current implementation of the {@link Logger} that is used by the application.
      * @return an implementation of {@link Logger}.
      */
-    public static Logger LOGGER() {
+    public static Logger logger() {
         return logger;
+    }
+
+    /**
+     * Get the config handler of the application.
+     * @return an implementation of {@link ConfigHandler} that is currently used by the application.
+     */
+    public static ConfigHandler getConfig() {
+        return instance.config;
+    }
+
+    /**
+     * Get the command manager of the application.
+     * @return the {@link CommandManager}.
+     */
+    public static CommandManager getCommandManager() {
+        return instance.commandManager;
     }
 }

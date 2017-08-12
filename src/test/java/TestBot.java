@@ -19,11 +19,11 @@ public class TestBot {
         try {
             bot.connectToDiscord();
         } catch (Exception e) {
-            ModularBot.LOGGER().error("App", e);
+            ModularBot.logger().error("App", e);
         }
 
-        ModularBot.LOGGER().info("App", "Shutting down in 5 seconds.");
-        bot.getMightPool().schedule(() -> bot.shutdown(false), 5, TimeUnit.SECONDS);
+        ModularBot.logger().info("App", "Shutting down in 5 seconds.");
+        bot.getMightyPool().schedule(() -> bot.shutdown(false), 5, TimeUnit.SECONDS);
     }
 
     public static void print(Object o) {

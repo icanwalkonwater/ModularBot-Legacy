@@ -1,5 +1,7 @@
 package com.jesus_crie.modularbot.config;
 
+import net.dv8tion.jda.core.entities.Guild;
+
 import java.io.IOException;
 
 public interface ConfigHandler {
@@ -11,10 +13,12 @@ public interface ConfigHandler {
     Version getVersion();
 
     /**
-     * Get the global prefix for commands.
-     * @return a String representing the command prefix.
+     * Get the prefix for commands in a specific guild.
+     * @param g can be null, if null return the global prefix.
+     * @return a String representing the global command prefix or the
+     *      guild specific prefix.
      */
-    String getPrefix();
+    String getPrefixForGuild(Guild g);
 
     /**
      * Get the name of the application.

@@ -5,14 +5,15 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.core.utils.Checks;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
-import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -43,7 +44,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     public void login(String token, ShardInfo shardInfo) throws LoginException, RateLimitedException {
         final EventListener readyListener = event -> {
             if (event instanceof ReadyEvent) {
-                ModularBot.LOGGER().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
+                ModularBot.logger().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
                 isReady = true;
                 removeEventListener(this);
             }
@@ -61,9 +62,25 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     @Override
     public String getIdentifierString() {
         if (shardInfo != null)
-            return f("%s %s", ModularBot.instance().getConfig().getAppName(), sInfos.getShardString());
+            return f("%s %s", ModularBot.getConfig().getAppName(), sInfos.getShardString());
         else
-            return ModularBot.instance().getConfig().getAppName();
+            return ModularBot.getConfig().getAppName();
+    }
+
+    /**
+     * Get an user by his name and his discriminator.
+     * The user must be on this shard.
+     * @param name the name of the user (not the nick)
+     * @param discriminator the discriminator of the user
+     * @return a possibly-null {@link User}.
+     */
+    public User getUserByNameAndDiscriminator(String name, String discriminator) {
+        Checks.notEmpty(name, "name");
+        Checks.notEmpty(discriminator, "discriminator");
+        return getUsersByName(name, true).stream()
+                .filter(u -> u.getDiscriminator().equals(discriminator))
+                .findAny()
+                .orElse(null);
     }
 
     /**
@@ -71,7 +88,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      */
     @Override
     public void shutdown() {
-        ModularBot.LOGGER().info("Stop", f("Shutting down shard %s", sInfos.getShardString()));
+        ModularBot.logger().info("Stop", f("Shutting down shard %s", sInfos.getShardString()));
         try {
             commandPool.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ignore) {
@@ -131,7 +148,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      */
     @Override
     public boolean equals(Object obj) {
-        Objects.requireNonNull(obj);
+        Checks.notNull(obj, "obj");
         return obj instanceof ModularShard && ((ModularShard) obj).shardInfo.getShardId() == shardInfo.getShardId();
     }
 
@@ -144,7 +161,8 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      */
     @Override
     public int compareTo(final ModularShard shard) {
-        Objects.requireNonNull(shard);
+        Checks.notNull(shard, "shard");
+
         if (equals(shard))
             return 0;
         return shardInfo.getShardId() < shard.shardInfo.getShardId() ? -1 : 1;
@@ -152,7 +170,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
 
     @Override
     public String toString() {
-        ConfigHandler c = ModularBot.instance().getConfig();
+        ConfigHandler c = ModularBot.getConfig();
         return f("%s v%s Shard %s #%s", c.getAppName(), c.getVersion().toString(), sInfos.getShardString(), hashCode());
     }
 }

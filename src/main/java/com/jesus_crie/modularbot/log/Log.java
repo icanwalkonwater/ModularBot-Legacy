@@ -1,8 +1,7 @@
 package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
-
-import java.util.Objects;
+import net.dv8tion.jda.core.utils.Checks;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
@@ -47,8 +46,8 @@ public class Log {
      * @param content (optional) an additional object that will be stringify with #toString().
      */
     public Log(LogLevel level, String prefix, String message, Object content) {
-        Objects.requireNonNull(level, "level must not be null");
-        Objects.requireNonNull(message, "message must not be null");
+        Checks.notNull(level, "level");
+        Checks.notEmpty(message, "message");
 
         LEVEL = level;
         PREFIX = prefix;

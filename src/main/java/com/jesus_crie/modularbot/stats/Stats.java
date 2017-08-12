@@ -65,9 +65,9 @@ public class Stats {
     }
 
     /**
-     * Create a bundle that contains unmodifiable stats about all lot of things.
+     * Create a bundle that contains unmodifiable stats about a lot of things.
      * If you have a lot of guild, this can take a lot of time and memory, use with caution.
-     * @return A {@link Bundle} that contains unmodifiable values.
+     * @return a {@link Bundle} that contains unmodifiable values.
      */
     public static Bundle toBundle() {
         return new Bundle(commandExecuted.get(),
