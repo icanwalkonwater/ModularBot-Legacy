@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -39,6 +42,8 @@ public class ModularBot {
     private final ConfigHandler config;
     private final List<ModularShard> shards;
 
+    private final ScheduledThreadPoolExecutor mightyPool;
+
     /**
      * Package-Private builder.
      * @param token the token provided.
@@ -47,6 +52,13 @@ public class ModularBot {
      */
     ModularBot(String token, ConfigHandler config, Logger logger, boolean useAudio) {
         Thread.currentThread().setName(f("%s #%s", config.getAppName(), Thread.currentThread().getId()));
+
+        mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
+            Thread t = new Thread(r);
+            t.setName(f("%s #%s", config.getAppName(), Thread.currentThread().getId()));
+            return t;
+        });
+        Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("UNCAUGHT EXCEPTION", e));
 
         Objects.requireNonNull(token, "Token missing !");
         Objects.requireNonNull(config, "Config missing !");
@@ -77,11 +89,7 @@ public class ModularBot {
      * @throws RateLimitedException if we are rate-limited.
      */
     public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
-        logger.info("Start", "Connecting to discord and initializing shards...");
-        logger.info("Start", "Querying recommended shard...");
-        maxShard = getShardMax();
-
-        logger.info("Start", f("Attempting to start %s shards...", maxShard));
+        logger.info("Start", "Attempting to spawn and start shards...");
         restartShards();
     }
 
@@ -100,10 +108,11 @@ public class ModularBot {
         }
 
         shards.clear();
-        maxShard = getShardMax();
+        maxShard = getShardMax(false);
+        logger.info("Start", f("Creation of %s shards is required.", maxShard));
 
         for (int i = 0; i < maxShard; i++) {
-            logger.info("Start", f("Starting shard %s of %s...", i, maxShard));
+            logger.info("Start", f("Starting shard %s of %s...", i + 1, maxShard));
             shards.add(new ModularJDABuilder(AccountType.BOT)
                     .setToken(token)
                     .useSharding(i, maxShard)
@@ -150,9 +159,36 @@ public class ModularBot {
      */
     public void shutdownShards(boolean force) {
         if (force) {
-            shards.forEach(ModularShard::shutdown);
+            shards.forEach(s -> mightyPool.execute(s::shutdown));
         } else {
-            shards.forEach(ModularShard::shutdownNow);
+            shards.forEach(s -> mightyPool.execute(s::shutdownNow));
+        }
+    }
+
+    /**
+     * Shutdown all shards, save the config and stop thread pools.
+     * @param force if true, shutdown as fast as is possible.
+     */
+    public void shutdown(boolean force) {
+        logger.info("Stop", f("Shutting down %s shards...", shards.size()));
+        shutdownShards(force);
+
+        logger.info("Stop", "Trying to save config...");
+        try {
+            config.save();
+        } catch (IOException e) {
+            logger.error("Stop", e);
+        }
+
+        if (force) {
+            mightyPool.shutdownNow();
+        } else {
+            try {
+                mightyPool.awaitTermination(1, TimeUnit.SECONDS);
+            } catch (InterruptedException ignore) {
+            } finally {
+                mightyPool.shutdown();
+            }
         }
     }
 
@@ -207,7 +243,10 @@ public class ModularBot {
      * Query the recommended amount of shards from the discord API.
      * @return the recommended amount of shards.
      */
-    private int getShardMax() {
+    private int getShardMax(boolean debug) {
+        if (debug)
+            return 3;
+
         try {
             OkHttpClient client = new OkHttpClient();
             Request request = new Request.Builder()
@@ -224,6 +263,20 @@ public class ModularBot {
         } catch (IOException ignore) {}
 
         return 1;
+    }
+
+    /**
+     * Get the main {@link ScheduledThreadPoolExecutor} that don't depend of any shard.
+     * Need to be used for global operation.
+     * @return the might thread pool.
+     */
+    public ScheduledThreadPoolExecutor getMightPool() {
+        return mightyPool;
+    }
+
+    @Override
+    public String toString() {
+        return f("%s v%s #%s", config.getAppName(), config.getVersion().toString(), hashCode());
     }
 
     /**

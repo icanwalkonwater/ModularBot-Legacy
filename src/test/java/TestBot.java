@@ -4,6 +4,8 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 
+import java.util.concurrent.TimeUnit;
+
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
 
@@ -19,6 +21,9 @@ public class TestBot {
         } catch (Exception e) {
             ModularBot.LOGGER().error("App", e);
         }
+
+        ModularBot.LOGGER().info("App", "Shutting down in 5 seconds.");
+        bot.getMightPool().schedule(() -> bot.shutdown(false), 5, TimeUnit.SECONDS);
     }
 
     public static void print(Object o) {
