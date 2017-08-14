@@ -2,36 +2,38 @@ package com.jesus_crie.modularbot.command;
 
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.sharding.ModularShard;
-import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.utils.Checks;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.function.BiPredicate;
-import java.util.function.Predicate;
+import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public class CommandPattern {
 
-    private final List<CommandArgument> arguments;
-    private final BiPredicate<CommandEvent, List<CommandArgument>> action;
+    private final List<Argument> arguments;
+    private final BiConsumer<CommandEvent, List<Object>> action;
 
     /**
-     * Main constructor, create a pattern from an array of {@link CommandArgument} and
+     * Main constructor, create a pattern from an array of {@link Argument} and
      * an action, generally a method reference.
      * @param args
      * @param action
      */
-    public CommandPattern(CommandArgument[] args, BiPredicate<CommandEvent, List<CommandArgument>> action) {
-        MiscUtils.notEmpty(args, "args");
+    public CommandPattern(Argument[] args, BiConsumer<CommandEvent, List<Object>> action) {
         Checks.notNull(action, "action");
 
-        arguments = Arrays.asList(args);
+        if (args != null)
+            arguments = Arrays.asList(args);
+        else
+            arguments = Collections.emptyList();
         this.action = action;
     }
 
-    public CommandPattern(CommandArgument[] args, Predicate<CommandEvent> action) {
-        this(args, (e, a) -> action.test(e));
+    public CommandPattern(Argument[] args, Consumer<CommandEvent> action) {
+        this(args, (e, a) -> action.accept(e));
     }
 
     public boolean hasArgument() {
@@ -95,5 +97,15 @@ public class CommandPattern {
         }
 
         return out;
+    }
+
+    /**
+     * Run the action of the pattern.
+     * This assume that {@link #matchArgs(String[])} has returned true.
+     * @param event the event containing information about the command.
+     * @param args the arguments mapped from the patterns. Can be cast to the desired objects.
+     */
+    public void run(CommandEvent event, String[] args) {
+        action.accept(event, collectArgs((ModularShard) event.getTriggerEvent().getJDA(), args));
     }
 }

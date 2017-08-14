@@ -4,7 +4,7 @@ import net.dv8tion.jda.core.entities.ChannelType;
 
 import java.util.EnumSet;
 
-public abstract class CommandContexts {
+public abstract class Contexts {
 
     public static final EnumSet<ChannelType> EVERYWHERE = EnumSet.allOf(ChannelType.class);
     public static final EnumSet<ChannelType> GUILD = EnumSet.of(ChannelType.TEXT);

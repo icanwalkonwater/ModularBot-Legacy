@@ -1,6 +1,5 @@
 package com.jesus_crie.modularbot.sharding;
 
-import com.jesus_crie.modularbot.ModularBot;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.JDA;
@@ -186,9 +185,6 @@ public class ModularJDABuilder extends JDABuilder {
      */
     @Override
     public ModularShard buildAsync() throws LoginException, IllegalArgumentException, RateLimitedException {
-        if (ModularBot.instance() != null)
-            throw new IllegalStateException("Modular Bot can only be instantiated one time !");
-
         OkHttpClient.Builder httpClientBuilder = this.httpClientBuilder == null ? new OkHttpClient.Builder() : this.httpClientBuilder;
         WebSocketFactory wsFactory = this.wsFactory == null ? new WebSocketFactory() : this.wsFactory;
         ModularShard shard = new ModularShard(accountType, httpClientBuilder, wsFactory, autoReconnect, enableVoice, enableShutdownHook,

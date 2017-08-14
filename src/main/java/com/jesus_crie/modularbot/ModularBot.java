@@ -168,9 +168,9 @@ public class ModularBot {
      */
     public void shutdownShards(boolean force) {
         if (force) {
-            shards.forEach(s -> mightyPool.execute(s::shutdown));
+            shards.forEach(ModularShard::shutdown);
         } else {
-            shards.forEach(s -> mightyPool.execute(s::shutdownNow));
+            shards.forEach(ModularShard::shutdownNow);
         }
     }
 

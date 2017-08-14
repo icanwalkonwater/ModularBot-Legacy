@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.sharding;
 
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.listener.CommandListener;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
@@ -35,6 +36,10 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
         super(accountType, httpClientBuilder, wsFactory, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, corePoolSize, maxReconnectDelay);
         sInfos = new ModularShardInfos();
         commandPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
+
+        // Command listener
+        ModularBot.logger().debug("Shard", "Registering listener");
+        addEventListener(new CommandListener());
     }
 
     /**

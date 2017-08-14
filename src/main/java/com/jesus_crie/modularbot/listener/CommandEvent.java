@@ -1,19 +1,24 @@
 package com.jesus_crie.modularbot.listener;
 
-import com.jesus_crie.modularbot.command.ModularCommand;
+import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.sharding.ModularShard;
+import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.events.message.GenericMessageEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
+import static com.jesus_crie.modularbot.utils.F.f;
+
 public class CommandEvent extends GenericMessageEvent {
 
-    private final ModularCommand command;
+    private final Command command;
     private final MessageReceivedEvent triggerEvent;
+    private final String[] rawArgs;
 
-    public CommandEvent(ModularCommand command, MessageReceivedEvent triggerEvent) {
+    public CommandEvent(Command command, MessageReceivedEvent triggerEvent, String[] rawArgs) {
         super(triggerEvent.getJDA(), triggerEvent.getResponseNumber(), triggerEvent.getMessageIdLong(), triggerEvent.getChannel());
         this.command = command;
         this.triggerEvent = triggerEvent;
+        this.rawArgs = rawArgs;
     }
 
     /**
@@ -27,9 +32,9 @@ public class CommandEvent extends GenericMessageEvent {
 
     /**
      * Get the command that has been called.
-     * @return a {@link ModularCommand}.
+     * @return a {@link Command}.
      */
-    public ModularCommand getCommand() {
+    public Command getCommand() {
         return command;
     }
 
@@ -39,5 +44,35 @@ public class CommandEvent extends GenericMessageEvent {
      */
     public MessageReceivedEvent getTriggerEvent() {
         return triggerEvent;
+    }
+
+    /**
+     * Get the not parsed arguments.
+     * @return an arrays of the full command.
+     */
+    public String[] getRawArgs() {
+        return rawArgs;
+    }
+
+    /**
+     * Easily reply with a simple message.
+     * Mainly for debug or quick commands.
+     * @param message the message to send.
+     * @return the newly created message.
+     */
+    public Message fastReply(String message) {
+        return getChannel().sendMessage(message).complete();
+    }
+
+    /**
+     * Used to print the event.
+     * @return a string representing the event.
+     */
+    @Override
+    public String toString() {
+        if (triggerEvent.getGuild() != null)
+            return f("%s from \"%s\" executed \"%s\"", triggerEvent.getAuthor().getName(), triggerEvent.getGuild().getName(), triggerEvent.getMessage().getRawContent());
+        else
+            return f("%s executed \"%s\"", triggerEvent.getAuthor().getName(), triggerEvent.getMessage().getRawContent());
     }
 }

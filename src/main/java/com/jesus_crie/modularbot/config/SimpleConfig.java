@@ -52,6 +52,16 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
+     * My personal Id.
+     * I recommend to override this.
+     * @see ConfigHandler#getCreatorId()
+     */
+    @Override
+    public long getCreatorId() {
+        return 182547138729869314L;
+    }
+
+    /**
      * Used to get any string from the config.
      * @param name The key name.
      * @return the value as a string or null if not found.

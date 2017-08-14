@@ -1,6 +1,6 @@
 package com.jesus_crie.modularbot.exception;
 
-import com.jesus_crie.modularbot.command.ModularCommand;
+import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -10,7 +10,7 @@ import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
  */
 public class CommandException extends RuntimeException {
 
-    protected final ModularCommand command;
+    protected final Command command;
     protected final MessageReceivedEvent event;
 
     /**
@@ -30,11 +30,17 @@ public class CommandException extends RuntimeException {
         this.event = event.getTriggerEvent();
     }
 
+    protected CommandException(CommandEvent event, Throwable cause) {
+        super(cause);
+        command = event.getCommand();
+        this.event = event.getTriggerEvent();
+    }
+
     /**
      * Get the command that has triggered this.
-     * @return a {@link ModularCommand}.
+     * @return a {@link Command}.
      */
-    public ModularCommand getCommand() {
+    public Command getCommand() {
         return command;
     }
 

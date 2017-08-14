@@ -5,12 +5,12 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.listener.CommandHandler;
+import com.jesus_crie.modularbot.listener.DefaultCommandHandler;
 import com.jesus_crie.modularbot.log.ConsoleLogger;
 import com.jesus_crie.modularbot.log.DefaultLogger;
 import com.jesus_crie.modularbot.log.Log;
 import com.jesus_crie.modularbot.log.Logger;
 import com.jesus_crie.modularbot.stats.Stats;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 public class ModularBuilder {
 
@@ -99,13 +99,16 @@ public class ModularBuilder {
      * @return a new instance of {@link ModularBot}.
      */
     public ModularBot build() {
+        if (ModularBot.instance() != null)
+            throw new IllegalStateException("Modular Bot can only be instantiated one time !");
+
         if (config == null)
             config = new SimpleConfig("./config.json", new Version(1, 0, 0, 0), "ModularBot");
         if (logger == null)
             logger = new DefaultLogger();
         logger.registerListener(new ConsoleLogger());
         if (command == null)
-            throw new NotImplementedException(); // TODO
+            command = new DefaultCommandHandler();
         if (useStats)
             Stats.enable();
 

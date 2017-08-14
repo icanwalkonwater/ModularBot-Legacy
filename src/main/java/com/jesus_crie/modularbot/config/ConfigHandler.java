@@ -27,6 +27,13 @@ public interface ConfigHandler {
     String getAppName();
 
     /**
+     * Used to get your discord user id.
+     * Used for command access level.
+     * @return your user id.
+     */
+    long getCreatorId();
+
+    /**
      * Used to save the config.
      * @throws IOException if there's a problem.
      */

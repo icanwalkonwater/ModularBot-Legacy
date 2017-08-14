@@ -4,7 +4,10 @@ import com.jesus_crie.modularbot.listener.CommandEvent;
 
 public class CommandFailedException extends CommandException {
 
-    public CommandFailedException(CommandEvent event) {
-        super(event);
+    private final Throwable reason;
+
+    public CommandFailedException(CommandEvent event, Throwable reason) {
+        super(event, reason);
+        this.reason = reason;
     }
 }
