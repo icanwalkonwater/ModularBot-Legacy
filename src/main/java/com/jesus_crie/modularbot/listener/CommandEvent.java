@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.listener;
 
 import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.sharding.ModularShard;
+import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.events.message.GenericMessageEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -71,8 +72,8 @@ public class CommandEvent extends GenericMessageEvent {
     @Override
     public String toString() {
         if (triggerEvent.getGuild() != null)
-            return f("%s from \"%s\" executed \"%s\"", triggerEvent.getAuthor().getName(), triggerEvent.getGuild().getName(), triggerEvent.getMessage().getRawContent());
+            return f("%s from \"%s\" executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getGuild().getName(), triggerEvent.getMessage().getRawContent());
         else
-            return f("%s executed \"%s\"", triggerEvent.getAuthor().getName(), triggerEvent.getMessage().getRawContent());
+            return f("%s executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getMessage().getRawContent());
     }
 }

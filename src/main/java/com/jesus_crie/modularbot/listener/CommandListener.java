@@ -4,6 +4,7 @@ import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.exception.CommandException;
 import com.jesus_crie.modularbot.exception.CommandNotFoundException;
+import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.stats.Stats;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
@@ -31,10 +32,13 @@ public class CommandListener extends ListenerAdapter {
             // Create the event.
             final CommandEvent cEvent = new CommandEvent(command, event, fullCommand);
 
-            // Pass the event to the command handler.
-            ModularBot.getCommandManager().handleCommand(cEvent);
-        } catch (CommandException e) {
-            ModularBot.getCommandManager().handleCommandError(e);
+            // Pass the event to the command handler in another thread.
+            ((ModularShard) event.getJDA()).getCommandPool().submit(() -> ModularBot.getCommandManager().handleCommand(cEvent)).get();
+        } catch (Exception e) {
+            if (e.getCause() instanceof CommandException)
+                ModularBot.getCommandManager().handleCommandError(((CommandException) e.getCause()));
+            else
+                ModularBot.getCommandManager().handleCommandError(new CommandException(event, e.getClass().getSimpleName()));
         }
     }
 }

@@ -5,12 +5,14 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
+import com.jesus_crie.modularbot.template.EmbedTemplate;
+import com.jesus_crie.modularbot.template.Templates;
+import com.jesus_crie.modularbot.utils.F;
+import net.dv8tion.jda.core.EmbedBuilder;
 
+import java.awt.*;
+import java.time.Instant;
 import java.util.List;
-
-import static com.jesus_crie.modularbot.utils.F.f;
 
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
@@ -48,19 +50,38 @@ public class TestBot {
                     }, this::yo),
 
                     new CommandPattern(new Argument[] {
-                            Argument.USER,
-                            Argument.CHANNEL,
-                            Argument.STRING.getRepeatable()
-                    }, this::salut)
+                            Argument.forString("embed")
+                    }, this::hi)
             );
         }
 
         private void yo(CommandEvent event) {
-            event.fastReply("Yo !");
+            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Tester").build()).queue();
         }
 
-        private void salut(CommandEvent event, List<Object> args) {
-            event.fastReply(f("User: %s\nChannel: %s", ((User) args.get(0)).getName(), ((TextChannel) args.get(1)).getName()));
+        private void hi(CommandEvent event, List<Object> args) {
+            EmbedBuilder base = new EmbedBuilder()
+                    .setTitle("Hi {0} !")
+                    .setDescription("This channel is named \"{1}\"")
+                    .setFooter("Requested by {2}", null)
+                    .setColor(Color.ORANGE)
+                    .setImage("http://www.keepbusy.net/pics/pic-dump-97-29.jpg")
+                    .setThumbnail("https://cdn.discordapp.com/attachments/302785106802638848/339750595907026954/sign-check-icon.png")
+                    .setAuthor("{0}", null, "https://cdn.discordapp.com/attachments/302785106802638848/326739524975722496/cup-512.png")
+                    .setTimestamp(Instant.now())
+                    .setThumbnail("https://cdn.discordapp.com/attachments/302785106802638848/317074381656424459/terminal-icon.png")
+                    .addField("Message id #{3}", "Server id #{4}", true);
+            event.getChannel().sendMessage(base.build()).queue();
+
+            EmbedTemplate template = new EmbedTemplate(base);
+
+            EmbedBuilder response = template.format(event.getTriggerEvent().getAuthor().getName(),
+                    event.getChannel().getName(),
+                    F.f("%s#%s", event.getTriggerEvent().getAuthor().getName(), event.getTriggerEvent().getAuthor().getDiscriminator()),
+                    event.getMessageId(),
+                    event.getTriggerEvent().getGuild().getId());
+
+            event.getChannel().sendMessage(response.build()).queue();
         }
     }
 
@@ -76,7 +97,7 @@ public class TestBot {
         }
 
         private void stop(CommandEvent event) {
-            event.fastReply("Shutting down...");
+            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...", null).build()).complete();
             ModularBot.instance().shutdown(false);
         }
     }
