@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import net.dv8tion.jda.core.entities.Guild;
 
 import java.io.File;
 import java.io.IOException;
@@ -35,10 +36,10 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#getPrefix()
+     * @see ConfigHandler#getPrefixForGuild(Guild)
      */
     @Override
-    public String getPrefix() {
+    public String getPrefixForGuild(Guild g) {
         return "/";
     }
 
@@ -48,6 +49,16 @@ public class SimpleConfig implements ConfigHandler {
     @Override
     public String getAppName() {
         return appName;
+    }
+
+    /**
+     * My personal Id.
+     * I recommend to override this.
+     * @see ConfigHandler#getCreatorId()
+     */
+    @Override
+    public long getCreatorId() {
+        return 182547138729869314L;
     }
 
     /**

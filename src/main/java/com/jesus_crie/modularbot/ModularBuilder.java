@@ -3,6 +3,9 @@ package com.jesus_crie.modularbot;
 import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
+import com.jesus_crie.modularbot.listener.CommandEvent;
+import com.jesus_crie.modularbot.listener.CommandHandler;
+import com.jesus_crie.modularbot.listener.DefaultCommandHandler;
 import com.jesus_crie.modularbot.log.ConsoleLogger;
 import com.jesus_crie.modularbot.log.DefaultLogger;
 import com.jesus_crie.modularbot.log.Log;
@@ -14,6 +17,7 @@ public class ModularBuilder {
     private final String token;
     private ConfigHandler config;
     private Logger logger;
+    private CommandHandler command;
     private boolean useAudio = false;
     private boolean useStats = false;
 
@@ -59,6 +63,17 @@ public class ModularBuilder {
     }
 
     /**
+     * If you want to customize the way that command errors are handled and printed.
+     * It can also act like a middleware with {@link CommandHandler#onCommand(CommandEvent)}.
+     * @param handler an implementation of {@link CommandHandler}.
+     * @return the current builder.
+     */
+    public ModularBuilder useCustomCommandHandler(CommandHandler handler) {
+        command = handler;
+        return this;
+    }
+
+    /**
      * Enable the audio.
      * @return the current builder.
      */
@@ -84,17 +99,19 @@ public class ModularBuilder {
      * @return a new instance of {@link ModularBot}.
      */
     public ModularBot build() {
+        if (ModularBot.instance() != null)
+            throw new IllegalStateException("Modular Bot can only be instantiated one time !");
+
         if (config == null)
             config = new SimpleConfig("./config.json", new Version(1, 0, 0, 0), "ModularBot");
         if (logger == null)
             logger = new DefaultLogger();
         logger.registerListener(new ConsoleLogger());
+        if (command == null)
+            command = new DefaultCommandHandler();
         if (useStats)
             Stats.enable();
 
-        return new ModularBot(token,
-                config,
-                logger,
-                useAudio);
+        return new ModularBot(token, config, logger, command, useAudio);
     }
 }

@@ -1,5 +1,7 @@
 package com.jesus_crie.modularbot.utils;
 
+import net.dv8tion.jda.core.utils.Checks;
+
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -10,6 +12,12 @@ public class MiscUtils {
     public static void requireBetween(int min, int max, int test, String message) {
         if (test < min && test > max)
             throw new IllegalArgumentException(message);
+    }
+
+    public static void notEmpty(Object[] array, String name) {
+        Checks.notNull(array, name);
+        if (array.length <= 0)
+            throw new IllegalArgumentException(name + " may not be null");
     }
 
     public static String collectStackTrace(Throwable e) {
