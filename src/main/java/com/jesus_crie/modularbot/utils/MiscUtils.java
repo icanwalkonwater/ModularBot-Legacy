@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.utils;
 
+import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.PrintWriter;
@@ -24,6 +25,10 @@ public class MiscUtils {
         final StringWriter sw = new StringWriter();
         e.printStackTrace(new PrintWriter(sw, true));
         return sw.getBuffer().toString();
+    }
+
+    public static String stringifyUser(User u) {
+        return u.getName() + "#" + u.getDiscriminator();
     }
 
     public static String capitalize(String s) {
