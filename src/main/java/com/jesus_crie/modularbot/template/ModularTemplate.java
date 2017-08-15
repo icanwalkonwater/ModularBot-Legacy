@@ -25,7 +25,7 @@ public abstract class ModularTemplate<T, V> {
     public abstract V format(Object... args);
 
     /**
-     * Shortcut.
+     * Just a shortcut.
      * @see MessageFormat#format(String, Object...)
      */
     protected String f(String src, Object... args) {

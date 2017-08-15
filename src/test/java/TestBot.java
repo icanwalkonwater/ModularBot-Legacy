@@ -6,6 +6,7 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
+import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
 import net.dv8tion.jda.core.EmbedBuilder;
 
@@ -55,7 +56,7 @@ public class TestBot {
         }
 
         private void yo(CommandEvent event) {
-            event.fastReply("Yo !");
+            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Tester").build()).queue();
         }
 
         private void hi(CommandEvent event, List<Object> args) {
@@ -96,7 +97,7 @@ public class TestBot {
         }
 
         private void stop(CommandEvent event) {
-            event.fastReply("Shutting down...");
+            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...", null).build()).complete();
             ModularBot.instance().shutdown(false);
         }
     }

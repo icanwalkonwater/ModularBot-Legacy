@@ -48,7 +48,7 @@ public class CommandException extends RuntimeException {
      * Get the event that has trigger the command.
      * @return a JDA event.
      */
-    public MessageReceivedEvent getTriggerEvent() {
+    public MessageReceivedEvent getEvent() {
         return event;
     }
 
