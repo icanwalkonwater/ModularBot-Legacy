@@ -16,14 +16,25 @@ public class CommandException extends RuntimeException {
     /**
      * Constructor when the {@link CommandEvent} has not been sent yet.
      */
-    public CommandException(MessageReceivedEvent event) {
+    protected CommandException(MessageReceivedEvent event) {
+        command = null;
+        this.event = event;
+    }
+
+    /**
+     * Constructor when we don't have the {@link CommandEvent} and we want a message.
+     * @param event the trigger event.
+     * @param message the message.
+     */
+    public CommandException(MessageReceivedEvent event, String message) {
+        super(message);
         command = null;
         this.event = event;
     }
 
     /**
      * Constructor when the event has been triggered.
-     * @param event
+     * @param event the command event.
      */
     public CommandException(CommandEvent event) {
         command = event.getCommand();

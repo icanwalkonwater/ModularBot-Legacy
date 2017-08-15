@@ -143,7 +143,7 @@ public class Argument<T> implements Cloneable {
 
     /**
      * Clone the current argument and return another version with {@link #repeatable} set to True.
-     * Usefull if you want to match a sentence.
+     * Useful if you want to match a sentence.
      * @return a clone with repeatable set to True.
      */
     public Argument getRepeatable() {

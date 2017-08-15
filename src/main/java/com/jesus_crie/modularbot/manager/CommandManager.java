@@ -7,6 +7,7 @@ import com.jesus_crie.modularbot.listener.CommandHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class CommandManager {
@@ -19,17 +20,26 @@ public class CommandManager {
     }
 
     /**
-     * Used to register some commands
-     * @param commands
+     * Used to register some commands.
+     * @param commands the commands to register.
      */
     public void registerCommands(Command... commands) {
         discordCommands.addAll(Arrays.asList(commands));
     }
 
+    /**
+     * Get an unmodifiable list of all registered commands.
+     * @return a list of commands.
+     */
     public List<Command> getCommands() {
-        return discordCommands;
+        return Collections.unmodifiableList(discordCommands);
     }
 
+    /**
+     * Get a command by it's alias.
+     * @param alias the alias.
+     * @return the corresponding command.
+     */
     public Command getCommand(final String alias) {
         return discordCommands.stream()
                 .filter(c -> c.getAliases().contains(alias))
@@ -37,11 +47,19 @@ public class CommandManager {
                 .orElse(null);
     }
 
+    /**
+     * Used to handle the incoming command.
+     * @param event the command event.
+     */
     public void handleCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException,
             CommandFailedException, NoPatternException {
         handler.onCommand(event);
     }
 
+    /**
+     * Used to handle an error that occurred before or during the execution of a command.
+     * @param error the error.
+     */
     public void handleCommandError(CommandException error) {
         if (error instanceof CommandNotFoundException)
             handler.onCommandNotFound((CommandNotFoundException) error, ((CommandNotFoundException) error).getNotFoundCommand());

@@ -12,7 +12,7 @@ public class Templates {
 
     public static final ModularTemplate<MessageEmbed, EmbedBuilder> ERROR = new EmbedTemplate(new EmbedBuilder()
             .setColor(Color.RED)
-            .setAuthor("An error occured", null, Icons.ERROR)
+            .setAuthor("An error occurred", null, Icons.ERROR)
             .setDescription("{0}")
     );
 

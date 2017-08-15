@@ -19,8 +19,8 @@ public class CommandPattern {
     /**
      * Main constructor, create a pattern from an array of {@link Argument} and
      * an action, generally a method reference.
-     * @param args
-     * @param action
+     * @param args the arguments required to trigger the command.
+     * @param action some code that will be executed if the pattern is triggered.
      */
     public CommandPattern(Argument[] args, BiConsumer<CommandEvent, List<Object>> action) {
         Checks.notNull(action, "action");
@@ -32,6 +32,9 @@ public class CommandPattern {
         this.action = action;
     }
 
+    /**
+     * Overload of {@link #CommandPattern(Argument[], BiConsumer)} for command that don't need the arguments.
+     */
     public CommandPattern(Argument[] args, Consumer<CommandEvent> action) {
         this(args, (e, a) -> action.accept(e));
     }

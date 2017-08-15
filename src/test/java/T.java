@@ -34,6 +34,7 @@ public class T {
             i = y;
         }
 
+        @SuppressWarnings("SimplifiableConditionalExpression")
         public boolean test(Integer i, Integer y) {
             return this.i && i == null ? false : y.equals(50);
         }

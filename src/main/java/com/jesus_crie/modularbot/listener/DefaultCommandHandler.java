@@ -41,6 +41,6 @@ public class DefaultCommandHandler implements CommandHandler {
 
     @Override
     public void onCommandErrorUnknown(CommandException e) {
-        e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), "An unknown error happened ! Please contact an administrator !").build()).queue();
+        e.getEvent().getChannel().sendMessage(Templates.ERROR.format(f("An unknown error happened: **%s** !\nPlease contact an administrator !", e.getMessage())).build()).queue();
     }
 }
