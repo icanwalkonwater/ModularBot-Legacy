@@ -36,10 +36,6 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
         super(accountType, httpClientBuilder, wsFactory, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, corePoolSize, maxReconnectDelay);
         sInfos = new ModularShardInfos();
         commandPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-
-        // Command listener
-        ModularBot.logger().debug("Shard", "Registering listener");
-        addEventListener(new CommandListener());
     }
 
     /**
@@ -47,6 +43,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      */
     @Override
     public void login(String token, ShardInfo shardInfo) throws LoginException, RateLimitedException {
+        // Ready listener
         final EventListener readyListener = event -> {
             if (event instanceof ReadyEvent) {
                 ModularBot.logger().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
@@ -59,6 +56,9 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
         super.login(token, shardInfo);
         pool.setThreadFactory(new ModularThreadFactory(this, "Main", true));
         commandPool.setThreadFactory(new ModularThreadFactory(this, "Command", true));
+
+        // Command listener
+        addEventListener(new CommandListener());
     }
 
     /**

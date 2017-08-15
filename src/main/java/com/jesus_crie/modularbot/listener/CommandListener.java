@@ -12,8 +12,6 @@ public class CommandListener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        ModularBot.logger().debug("Listener", "Event");
-
         // Check if message start with the command prefix.
         if (!event.getMessage().getRawContent().startsWith(ModularBot.getConfig().getPrefixForGuild(event.getGuild())))
             return;
@@ -33,7 +31,7 @@ public class CommandListener extends ListenerAdapter {
             // Create the event.
             final CommandEvent cEvent = new CommandEvent(command, event, fullCommand);
 
-            //
+            // Pass the event to the command handler.
             ModularBot.getCommandManager().handleCommand(cEvent);
         } catch (CommandException e) {
             ModularBot.getCommandManager().handleCommandError(e);

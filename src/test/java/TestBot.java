@@ -9,7 +9,6 @@ import net.dv8tion.jda.core.entities.TextChannel;
 import net.dv8tion.jda.core.entities.User;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
@@ -33,9 +32,6 @@ public class TestBot {
         } catch (Exception e) {
             ModularBot.logger().error("App", e);
         }
-
-        ModularBot.logger().info("App", "Shutting down in 5 seconds.");
-        bot.getMightyPool().schedule(() -> bot.shutdown(false), 5, TimeUnit.SECONDS);
     }
 
     public static class CommandTest extends Command {
@@ -53,7 +49,8 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.USER,
-                            Argument.CHANNEL
+                            Argument.CHANNEL,
+                            Argument.STRING.getRepeatable()
                     }, this::salut)
             );
         }

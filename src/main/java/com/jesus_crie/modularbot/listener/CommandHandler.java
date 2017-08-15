@@ -18,7 +18,7 @@ public interface CommandHandler {
             throw new WrongContextException(event);
 
         // Check Access Level.
-        if (event.getCommand().getAccessLevel().check(event.getTriggerEvent().getAuthor(), event.getTriggerEvent().getGuild()))
+        if (!event.getCommand().getAccessLevel().check(event.getTriggerEvent().getAuthor(), event.getTriggerEvent().getGuild()))
             throw new LowAccessLevelException(event);
 
         // Some logs.
