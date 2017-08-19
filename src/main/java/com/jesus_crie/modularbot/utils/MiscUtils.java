@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.concurrent.TimeUnit;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
@@ -33,6 +34,16 @@ public class MiscUtils {
 
     public static String capitalize(String s) {
         return Character.toUpperCase(s.charAt(0)) + s.toLowerCase().substring(1);
+    }
+
+    /**
+     * Easily convert an amount of time into milliseconds.
+     * @param time the amount if time in <code>unit</code>.
+     * @param unit the unit of time.
+     * @return the amount if time converted into milliseconds.
+     */
+    public static long convertTime(long time, TimeUnit unit) {
+        return unit.toMillis(time);
     }
 
     /**

@@ -8,11 +8,15 @@ import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
+import com.jesus_crie.modularbot.utils.MiscUtils;
+import com.jesus_crie.modularbot.utils.Waiter;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
@@ -51,12 +55,44 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.forString("embed")
-                    }, this::hi)
+                    }, this::hi),
+
+                    new CommandPattern(null, this::test)
             );
         }
 
+        private void test(CommandEvent event) {
+            /*Waiter.awaitEvent(event.getJDA(),
+                    MessageReceivedEvent.class,
+                    e -> !e.getAuthor().equals(event.getJDA().getSelfUser()),
+                    e -> event.fastReply(e.getMessage().getRawContent()),
+                    () -> event.fastReply("Timeout !"),
+                    5000L,
+                    true);*/
+
+            /*Waiter.getNextEvent(event.getJDA(),
+                    MessageReceivedEvent.class,
+                    e -> !e.getAuthor().equals(event.getJDA().getSelfUser()),
+                    5000L);*/
+
+            MessageReceivedEvent next = Waiter.getNextMessageFromUserInChannel(event.getJDA(),
+                    event.getAuthor(),
+                    event.getChannel(),
+                    5000L);
+            if (next == null)
+                event.fastReply("Timeout");
+            else
+                event.fastReply(next.getMessage().getRawContent());
+        }
+
         private void yo(CommandEvent event) {
-            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Tester").build()).queue();
+            event.fastReply("Type something");
+
+            MessageReceivedEvent next = Waiter.getNextMessageFromUserInChannel(event.getJDA(), event.getAuthor(), event.getChannel(), MiscUtils.convertTime(10, TimeUnit.SECONDS));
+            if (next != null)
+                event.fastReply("You just said: " + next.getMessage().getRawContent());
+            else
+                event.fastReply("Timeout !");
         }
 
         private void hi(CommandEvent event, List<Object> args) {
@@ -97,7 +133,7 @@ public class TestBot {
         }
 
         private void stop(CommandEvent event) {
-            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...", null).build()).complete();
+            event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...").build()).complete();
             ModularBot.instance().shutdown(false);
         }
     }
