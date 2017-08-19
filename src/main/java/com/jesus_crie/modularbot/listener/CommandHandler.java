@@ -33,7 +33,7 @@ public interface CommandHandler {
      * @param e the error.
      * @param notFound the command that he type but don't exist.
      */
-    default void onCommandNotFound(CommandNotFoundException e, String notFound) {}
+    void onCommandNotFound(CommandNotFoundException e, String notFound);
 
     /**
      * Triggered when a command is triggered outside of his

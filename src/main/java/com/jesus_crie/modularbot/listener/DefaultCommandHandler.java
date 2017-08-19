@@ -9,6 +9,9 @@ import static com.jesus_crie.modularbot.utils.F.f;
 public class DefaultCommandHandler implements CommandHandler {
 
     @Override
+    public void onCommandNotFound(CommandNotFoundException e, String notFound) {} // Ignore
+
+    @Override
     public void onCommandWrongContext(WrongContextException e) {
         e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), "This command isn't allowed here !").build()).queue();
     }

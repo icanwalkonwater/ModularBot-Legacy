@@ -4,19 +4,18 @@ import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.events.message.GenericMessageEvent;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
-public class CommandEvent extends GenericMessageEvent {
+public class CommandEvent extends MessageReceivedEvent {
 
     private final Command command;
     private final MessageReceivedEvent triggerEvent;
     private final String[] rawArgs;
 
     public CommandEvent(Command command, MessageReceivedEvent triggerEvent, String[] rawArgs) {
-        super(triggerEvent.getJDA(), triggerEvent.getResponseNumber(), triggerEvent.getMessageIdLong(), triggerEvent.getChannel());
+        super(triggerEvent.getJDA(), triggerEvent.getResponseNumber(), triggerEvent.getMessage());
         this.command = command;
         this.triggerEvent = triggerEvent;
         this.rawArgs = rawArgs;

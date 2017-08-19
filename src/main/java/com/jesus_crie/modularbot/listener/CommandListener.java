@@ -33,7 +33,7 @@ public class CommandListener extends ListenerAdapter {
             final CommandEvent cEvent = new CommandEvent(command, event, fullCommand);
 
             // Pass the event to the command handler in another thread.
-            ((ModularShard) event.getJDA()).getCommandPool().submit(() -> ModularBot.getCommandManager().handleCommand(cEvent)).get();
+            ((ModularShard) event.getJDA()).getCommandPool().execute(() -> ModularBot.getCommandManager().handleCommand(cEvent));
         } catch (Exception e) {
             if (e.getCause() instanceof CommandException)
                 ModularBot.getCommandManager().handleCommandError(((CommandException) e.getCause()));
