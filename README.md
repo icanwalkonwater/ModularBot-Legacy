@@ -1,6 +1,25 @@
+[![Download](https://api.bintray.com/packages/spacecookies/generic/modularbot/images/download.svg)](https://bintray.com/spacecookies/generic/modularbot/_latestVersion)
+![JDA Version](https://img.shields.io/badge/JDA-3.2.0__242-brightgreen.svg)
+![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.42-brightgreen.svg)
+
 # ModularBot framework
 ModularBot is a java framework designed to help you creating a discord bot using Java without the boring parts.
 The "Modular" is not just a random word, the framework come with some default managers but they are all overridable from the logging system to the handling of commands for more flexibility.
+
+## Installation
+You can install the framework through gradle with this:
+```gradle
+repositories {
+    jcenter()
+    maven {
+        url 'http://spacecookies.bintray.com/generic'
+    }
+}
+
+dependencies {
+    compile 'com.jesus_crie:modularbot:1.0.0'
+}
+```
 
 ## Features
 - Sharding support.
@@ -11,3 +30,6 @@ The "Modular" is not just a random word, the framework come with some default ma
 - Log output customizable.
 - Global stats.
 - Templates (embeds & plain text).
+
+## Getting started
+Click [here](/wiki) to access the documentation.

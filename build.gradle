@@ -78,7 +78,7 @@ publishing {
         myPublish(MavenPublication) {
             from components.java
             groupId project.group
-            artifactId project.name
+            artifactId "modularbot"
             version project.version
             artifact javadocJar
             artifact sourcesJar
@@ -100,4 +100,8 @@ String getBintrayKey() {
 
 String getBintrayOrg() {
     file("gradle/bintray").readLines().get(2)
+}
+
+task logThings() {
+    println project.name
 }
