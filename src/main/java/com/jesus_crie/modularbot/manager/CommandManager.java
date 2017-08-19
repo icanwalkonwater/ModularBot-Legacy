@@ -51,9 +51,13 @@ public class CommandManager {
      * Used to handle the incoming command.
      * @param event the command event.
      */
-    public void handleCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException,
-            CommandFailedException, NoPatternException {
-        handler.onCommand(event);
+    public void handleCommand(CommandEvent event) {
+        try {
+            handler.onCommand(event);
+            handler.onCommandSuccess(event);
+        } catch (CommandException e) {
+            handleCommandError(e);
+        }
     }
 
     /**

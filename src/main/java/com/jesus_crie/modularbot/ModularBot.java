@@ -182,7 +182,7 @@ public class ModularBot {
         logger.info("Stop", f("Shutting down %s shards...", shards.size()));
         shutdownShards(force);
 
-        logger.info("Stop", "Trying to save config...");
+        logger.info("Stop", "Saving config...");
         try {
             config.save();
         } catch (IOException e) {
