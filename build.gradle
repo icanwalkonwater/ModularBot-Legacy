@@ -1,9 +1,15 @@
-group 'ModularBot'
-version '0.0.1'
+plugins {
+    id 'com.jfrog.bintray' version '1.7.3'
+}
 
 apply plugin: 'java'
+apply plugin: 'maven-publish'
+
+group 'com.jesus_crie'
+version '1.0.0'
 
 sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -14,4 +20,88 @@ dependencies {
     compile 'net.dv8tion:JDA:3.2.0_242'
     compile 'com.sedmelluq:lavaplayer:1.2.42'
     compile 'org.slf4j:slf4j-nop:1.7.21'
+}
+
+jar {
+    baseName = projects.name
+    manifest {
+        attributes 'Implementation-Version': version
+    }
+}
+
+javadoc {
+    failOnError = false
+    options.memberLevel = JavadocMemberLevel.PUBLIC
+    options.encoding = "UTF-8"
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from "src/main/java"
+}
+
+build {
+    dependsOn clean
+    dependsOn jar
+    dependsOn javadocJar
+    dependsOn sourcesJar
+
+    jar.mustRunAfter clean
+    javadocJar.mustRunAfter jar
+    sourcesJar.mustRunAfter javadocJar
+}
+
+bintray {
+    user = getBintrayUser()
+    key = getBintrayKey()
+    publications = ['myPublish']
+    pkg {
+        repo = 'generic'
+        name = 'modularbot'
+        licenses = 'GPL-3.0'
+        userOrg = getBintrayOrg()
+        vcsUrl = 'https://github.com/JesusCrie/ModularBot.git'
+        version {
+            name = project.version
+            released = new Date()
+        }
+    }
+}
+
+publishing {
+    publications {
+        myPublish(MavenPublication) {
+            from components.java
+            groupId project.group
+            artifactId "modularbot"
+            version project.version
+            artifact javadocJar
+            artifact sourcesJar
+        }
+    }
+}
+
+bintrayUpload {
+    dependsOn build
+}
+
+String getBintrayUser() {
+    file("gradle/bintray").readLines().get(0)
+}
+
+String getBintrayKey() {
+    file("gradle/bintray").readLines().get(1)
+}
+
+String getBintrayOrg() {
+    file("gradle/bintray").readLines().get(2)
+}
+
+task logThings() {
+    println project.name
 }

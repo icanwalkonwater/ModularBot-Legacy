@@ -1,7 +1,6 @@
 package com.jesus_crie.modularbot.utils;
 
 import com.jesus_crie.modularbot.sharding.ModularShard;
-import com.sun.istack.internal.NotNull;
 
 import java.util.concurrent.ThreadFactory;
 
@@ -24,8 +23,9 @@ public class ModularThreadFactory implements ThreadFactory {
     /**
      * @see ThreadFactory#newThread(Runnable)
      */
+    @SuppressWarnings("NullableProblems")
     @Override
-    public Thread newThread(@NotNull final Runnable r) {
+    public Thread newThread(final Runnable r) {
         final Thread thread = new Thread(r);
         thread.setName(identifier + " #" + thread.getId());
         thread.setDaemon(isDaemon);

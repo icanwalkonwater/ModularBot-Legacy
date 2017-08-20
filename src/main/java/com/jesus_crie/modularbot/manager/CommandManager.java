@@ -1,6 +1,8 @@
 package com.jesus_crie.modularbot.manager;
 
+import com.jesus_crie.modularbot.command.AccessLevel;
 import com.jesus_crie.modularbot.command.Command;
+import com.jesus_crie.modularbot.command.QuickCommand;
 import com.jesus_crie.modularbot.exception.*;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.listener.CommandHandler;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class CommandManager {
 
@@ -36,6 +39,24 @@ public class CommandManager {
     }
 
     /**
+     * Register a quick command with no argument accessible from everywhere by everybody.
+     * @param name the name of the command.
+     * @param action the action to perform.
+     */
+    public void registerQuickCommand(String name, Consumer<CommandEvent> action) {
+        registerCommands(new QuickCommand(name, AccessLevel.EVERYONE, action));
+    }
+
+    /**
+     * Register a quick command with no argument accessible from everywhere but only by admins.
+     * @param name the name of the command.
+     * @param action the action to perform.
+     */
+    public void registerAdminQuickCommand(String name, Consumer<CommandEvent> action) {
+        registerCommands(new QuickCommand(name, AccessLevel.ADMINISTRATOR, action));
+    }
+
+    /**
      * Get a command by it's alias.
      * @param alias the alias.
      * @return the corresponding command.
@@ -51,9 +72,13 @@ public class CommandManager {
      * Used to handle the incoming command.
      * @param event the command event.
      */
-    public void handleCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException,
-            CommandFailedException, NoPatternException {
-        handler.onCommand(event);
+    public void handleCommand(CommandEvent event) {
+        try {
+            handler.onCommand(event);
+            handler.onCommandSuccess(event);
+        } catch (CommandException e) {
+            handleCommandError(e);
+        }
     }
 
     /**

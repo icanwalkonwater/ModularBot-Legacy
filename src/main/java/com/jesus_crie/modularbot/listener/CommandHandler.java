@@ -1,6 +1,5 @@
 package com.jesus_crie.modularbot.listener;
 
-import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.exception.*;
 
 public interface CommandHandler {
@@ -11,22 +10,13 @@ public interface CommandHandler {
      * Can be overrided to remove or add checks.
      * @param event the event that has triggered the command.
      */
-    default void onCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException,
-            CommandFailedException, NoPatternException {
-        // Check context.
-        if (!event.getCommand().checkContext(event.getChannelType()))
-            throw new WrongContextException(event);
+    void onCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException, CommandFailedException, NoPatternException;
 
-        // Check Access Level.
-        if (!event.getCommand().getAccessLevel().check(event.getTriggerEvent().getAuthor(), event.getTriggerEvent().getGuild()))
-            throw new LowAccessLevelException(event);
-
-        // Some logs.
-        ModularBot.logger().info("Command", event.toString());
-
-        // Start the matching of patterns.
-        event.getCommand().execute(event);
-    }
+    /**
+     * Triggered after a command has been executed.
+     * @param event the event that has triggered the command.
+     */
+    void onCommandSuccess(CommandEvent event);
 
     /**
      * Triggered when someone type a command that didn't exist.

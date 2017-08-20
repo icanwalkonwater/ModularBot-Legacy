@@ -77,8 +77,8 @@ public class Waiter {
      * @return the event corresponding to the next message sent by the user or null if the method has timed out.
      */
     public static MessageReceivedEvent getNextMessageFromUser(final ModularShard shard, final User from, final long timeout) {
-        Checks.notNull(shard, "shard");
         Checks.notNull(from, "user");
+
         return getNextEvent(shard,
                 MessageReceivedEvent.class,
                 e -> e.getAuthor().equals(from),
@@ -94,7 +94,6 @@ public class Waiter {
      * @return the next message of the user in the desired channel or null if the method has timed out.
      */
     public static MessageReceivedEvent getNextMessageFromUserInChannel(final ModularShard shard, final User from, final MessageChannel channel, final long timeout) {
-        Checks.notNull(shard, "shard");
         Checks.notNull(from, "user");
         Checks.notNull(channel, "channel");
 
