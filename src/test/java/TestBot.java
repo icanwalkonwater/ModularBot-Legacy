@@ -5,12 +5,14 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
+import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
 import com.jesus_crie.modularbot.utils.MiscUtils;
 import com.jesus_crie.modularbot.utils.Waiter;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.Webhook;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
@@ -38,6 +40,16 @@ public class TestBot {
         } catch (Exception e) {
             ModularBot.logger().error("App", e);
         }
+
+        Webhook logHook = bot.getShardForGuildId(264001800686796800L).getGuildById(264001800686796800L).getWebhooks().complete().get(0);
+
+        /*Webhooks.execute(logHook,
+                "Jean David",
+                "https://cdn.discordapp.com/attachments/302785106802638848/302790538627776512/sign-info-icon.png",
+                false,
+                "Salut !",
+                new MessageEmbed[] {new EmbedBuilder().setTitle("Yo !").build()}).queue();*/
+        ModularBot.logger().registerListener(new WebhookLogger(logHook));
     }
 
     public static class CommandTest extends Command {
