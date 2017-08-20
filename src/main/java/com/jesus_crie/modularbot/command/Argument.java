@@ -198,8 +198,8 @@ public class Argument<T> implements Cloneable {
     @Override
     public String toString() {
         if (repeatable)
-            return f("<%s> [%s...]", clazz.getSimpleName());
+            return f("<%s> [%s...]", clazz == null ? "Object" : clazz.getSimpleName());
         else
-            return f("<%s>", clazz.getSimpleName());
+            return f("<%s>", clazz == null ? "Object" : clazz.getSimpleName());
     }
 }

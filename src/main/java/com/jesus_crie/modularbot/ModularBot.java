@@ -12,6 +12,7 @@ import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
+import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.utils.Checks;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
@@ -163,14 +165,22 @@ public class ModularBot {
     }
 
     /**
+     * Dispatch some code through all shards.
+     * @param action the action to perform for each shard.
+     */
+    public void dispatchCommand(Consumer<ModularShard> action) {
+        shards.forEach(action);
+    }
+
+    /**
      * Shutdown every shards one by one.
      * @param force if true {@link ModularShard#shutdownNow()} will be used instead of {@link ModularShard#shutdown()}
      */
-    public void shutdownShards(boolean force) {
+    private void shutdownShards(boolean force) {
         if (force) {
-            shards.forEach(ModularShard::shutdown);
+            dispatchCommand(ModularShard::shutdown);
         } else {
-            shards.forEach(ModularShard::shutdownNow);
+            dispatchCommand(ModularShard::shutdownNow);
         }
     }
 
@@ -199,6 +209,25 @@ public class ModularBot {
                 mightyPool.shutdown();
             }
         }
+        instance = null;
+    }
+
+    /**
+     * Register each listener in each shard of the bot.
+     * @param listeners the listeners to register.
+     * @see ModularShard#addEventListener(Object...)
+     */
+    public void addEventListener(EventListener... listeners) {
+        dispatchCommand(s -> s.addEventListener((Object[]) listeners));
+    }
+
+    /**
+     * Unregister each listener in each shard of the bot.
+     * @param listeners the listeners to unregister.
+     * @see ModularShard#removeEventListener(Object...)
+     */
+    public void removeEventListener(EventListener... listeners) {
+        dispatchCommand(s -> s.removeEventListener((Object[]) listeners));
     }
 
     /**
@@ -211,6 +240,15 @@ public class ModularBot {
 
     public ModularShard getShardById(int shardId) {
         return shards.get(shardId);
+    }
+
+    /**
+     * Get the shard that handle the given guild.
+     * @param id the id of the guild.
+     * @return the {@link ModularShard} that handle this guild.
+     */
+    public ModularShard getShardForGuildId(long id) {
+        return getShardById((int) (id >> 22) % shards.size());
     }
 
     /**
@@ -244,6 +282,7 @@ public class ModularBot {
      * Query the recommended amount of shards from the discord API.
      * @return the recommended amount of shards.
      */
+    @SuppressWarnings("ConstantConditions")
     private int getShardMax(boolean debug) {
         if (debug)
             return 3;
@@ -261,9 +300,12 @@ public class ModularBot {
             res.close();
 
             return j.getInt("shards");
-        } catch (IOException ignore) {}
-
-        return 1;
+        } catch (Exception e) {
+            logger.fatal("Start", e.getClass().getSimpleName() + " while getting the recommended amount of shards ! Using 1 shard.");
+            if (e.getMessage() != null)
+                logger.fatal("Start", e.getMessage());
+            return 1;
+        }
     }
 
     /**

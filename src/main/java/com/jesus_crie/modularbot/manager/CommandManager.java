@@ -1,6 +1,8 @@
 package com.jesus_crie.modularbot.manager;
 
+import com.jesus_crie.modularbot.command.AccessLevel;
 import com.jesus_crie.modularbot.command.Command;
+import com.jesus_crie.modularbot.command.QuickCommand;
 import com.jesus_crie.modularbot.exception.*;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.listener.CommandHandler;
@@ -9,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class CommandManager {
 
@@ -33,6 +36,24 @@ public class CommandManager {
      */
     public List<Command> getCommands() {
         return Collections.unmodifiableList(discordCommands);
+    }
+
+    /**
+     * Register a quick command with no argument accessible from everywhere by everybody.
+     * @param name the name of the command.
+     * @param action the action to perform.
+     */
+    public void registerQuickCommand(String name, Consumer<CommandEvent> action) {
+        registerCommands(new QuickCommand(name, AccessLevel.EVERYONE, action));
+    }
+
+    /**
+     * Register a quick command with no argument accessible from everywhere but only by admins.
+     * @param name the name of the command.
+     * @param action the action to perform.
+     */
+    public void registerAdminQuickCommand(String name, Consumer<CommandEvent> action) {
+        registerCommands(new QuickCommand(name, AccessLevel.ADMINISTRATOR, action));
     }
 
     /**

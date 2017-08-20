@@ -23,7 +23,7 @@ public abstract class Command {
      * @param context the required context to execute the command. Use {@link Contexts}
      * @param level the access level required.
      */
-    protected Command(String name, EnumSet<ChannelType> context, AccessLevel level) {
+    public Command(String name, EnumSet<ChannelType> context, AccessLevel level) {
         aliases.add(name);
         allowedContext = context;
         accessLevel = level;
