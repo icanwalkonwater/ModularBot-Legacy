@@ -41,7 +41,15 @@ public interface ConfigHandler {
 
     /**
      * Used to load the config.
+     * Called from {@link #startAutoSave()}
      * @throws IOException if there's a problem.
      */
     void save() throws IOException;
+
+    /**
+     * Used to start the auto-save loop.
+     * This method is called in a blocking way so it MUST
+     * create a new thread or something.
+     */
+    void startAutoSave();
 }

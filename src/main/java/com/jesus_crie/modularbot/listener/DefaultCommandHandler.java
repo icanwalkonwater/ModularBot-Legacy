@@ -27,9 +27,7 @@ public class DefaultCommandHandler implements CommandHandler {
     }
 
     @Override
-    public void onCommandSuccess(CommandEvent event) {
-        ModularBot.logger().info("Command Handler", "Command successfully executed !");
-    }
+    public void onCommandSuccess(CommandEvent event) {} // Ignore
 
     @Override
     public void onCommandNotFound(CommandNotFoundException e, String notFound) {} // Ignore
@@ -58,6 +56,7 @@ public class DefaultCommandHandler implements CommandHandler {
     @Override
     public void onCommandFailed(CommandFailedException e) {
         e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), "Something wrong happened...").build()).queue();
+        ModularBot.logger().error("Command", e);
     }
 
     @Override

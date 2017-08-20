@@ -2,11 +2,13 @@ package com.jesus_crie.modularbot.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jesus_crie.modularbot.ModularBot;
 import net.dv8tion.jda.core.entities.Guild;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A simple config wrapper that load config from a file called "config.json" using an {@link ObjectMapper}.
@@ -94,8 +96,9 @@ public class SimpleConfig implements ConfigHandler {
      * @return true if the file has been successfully created.
      *      False if the file already exist.
      */
+    @SuppressWarnings("UnusedReturnValue")
     private boolean checkAndCreateFile() throws IOException {
-        return this.configFile.createNewFile();
+        return configFile.createNewFile();
     }
 
     /**
@@ -116,5 +119,17 @@ public class SimpleConfig implements ConfigHandler {
     public void save() throws IOException {
         checkAndCreateFile();
         mapper.writeValue(configFile, settings);
+    }
+
+    /**
+     * @see ConfigHandler#startAutoSave()
+     */
+    @Override
+    public void startAutoSave() {
+        ModularBot.instance().getMightyPool().scheduleWithFixedDelay(() -> {
+            try {
+                save();
+            } catch (IOException ignore) {}
+        }, 5, 5, TimeUnit.MINUTES);
     }
 }

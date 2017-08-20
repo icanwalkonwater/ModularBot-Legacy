@@ -41,6 +41,7 @@ public class ModularBot {
 
     private static ModularBot instance;
     private static Logger logger;
+    private static boolean isReady = false;
 
     private final String token;
     private final boolean useAudio;
@@ -56,6 +57,8 @@ public class ModularBot {
      * Package-Private builder.
      * @param token the token provided.
      * @param config a custom {@link ConfigHandler}.
+     * @param logger a custom {@link Logger}.
+     * @param command a custom {@link CommandHandler}.
      * @param useAudio if the audio must be enabled.
      */
     ModularBot(String token, ConfigHandler config, Logger logger, CommandHandler command, boolean useAudio) {
@@ -102,6 +105,12 @@ public class ModularBot {
     public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
         logger.info("Start", "Attempting to spawn and start shards...");
         restartShards();
+
+        logger.info("Start", "Enabling auto save...");
+        config.startAutoSave();
+
+        logger.info("Start", "Ready !");
+        isReady = true;
     }
 
     /**
@@ -189,6 +198,7 @@ public class ModularBot {
      * @param force if true, shutdown as fast as is possible.
      */
     public void shutdown(boolean force) {
+        isReady = false;
         logger.info("Stop", f("Shutting down %s shards...", shards.size()));
         shutdownShards(force);
 
@@ -249,6 +259,14 @@ public class ModularBot {
      */
     public ModularShard getShardForGuildId(long id) {
         return getShardById((int) (id >> 22) % shards.size());
+    }
+
+    /**
+     * Get the shard that will receive private messages.
+     * @return the shard 0.
+     */
+    public ModularShard getDMShard() {
+        return shards.get(0);
     }
 
     /**
@@ -324,10 +342,20 @@ public class ModularBot {
 
     /**
      * Get the current instance of {@link ModularBot}.
-     * @return a possibly-null instance of {@link ModularBot} (if called during the constructor).
+     * @return the instance of {@link ModularBot}.
      */
     public static ModularBot instance() {
+        if (instance == null)
+            throw new IllegalStateException("ModularBot has not been initialized yet !");
         return instance;
+    }
+
+    /**
+     * Check if the bot is connected to discord and all of the components can be used.
+     * @return true if everything can be used, otherwise false.
+     */
+    public static boolean isReady() {
+        return isReady;
     }
 
     /**

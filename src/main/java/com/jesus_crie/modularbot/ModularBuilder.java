@@ -98,9 +98,12 @@ public class ModularBuilder {
      * or default values and handlers such as {@link SimpleConfig} and {@link DefaultLogger}.
      * @return a new instance of {@link ModularBot}.
      */
+    @SuppressWarnings("ResultOfMethodCallIgnored")
     public ModularBot build() {
-        if (ModularBot.instance() != null)
+        try {
+            ModularBot.instance();
             throw new IllegalStateException("Modular Bot can only be instantiated one time !");
+        } catch (Exception ignore) {}
 
         if (config == null)
             config = new SimpleConfig("./config.json", new Version(1, 0, 0, 0), "ModularBot");
