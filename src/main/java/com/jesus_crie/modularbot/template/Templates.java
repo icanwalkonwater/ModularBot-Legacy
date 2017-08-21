@@ -14,11 +14,13 @@ public class Templates {
             .setColor(Color.RED)
             .setAuthor("An error occurred", null, Icons.ERROR)
             .setDescription("{0}")
+            .build()
     );
 
     public static final ModularTemplate<MessageEmbed, EmbedBuilder> GLOBAL = new EmbedTemplate(new EmbedBuilder()
             .setColor(Color.WHITE)
             .setAuthor("{0}", null, Icons.INFORMATION)
+            .build()
     );
 
     public static EmbedBuilder ERROR_SIGNED(User author, Object... args) {

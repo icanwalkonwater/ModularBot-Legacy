@@ -19,7 +19,7 @@ public class T {
         EmbedBuilder builder = new EmbedBuilder()
                 .setTitle("Hy {0} !")
                 .setFooter("Created by {1} !", null);
-        EmbedTemplate template = new EmbedTemplate(builder);
+        EmbedTemplate template = new EmbedTemplate(builder.build());
 
         MessageEmbed formatted = template.format("me", "an awesome person").build();
         print(formatted.getTitle());

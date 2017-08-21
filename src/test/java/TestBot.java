@@ -5,14 +5,12 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
 import com.jesus_crie.modularbot.utils.MiscUtils;
 import com.jesus_crie.modularbot.utils.Waiter;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.Webhook;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 
 import java.awt.*;
@@ -34,6 +32,10 @@ public class TestBot {
                 new CommandTest(),
                 new CommandStop()
         );
+        ModularBot.getCommandManager().registerQuickCommand("ping", e -> e.fastReply("Pong !"));
+        ModularBot.getCommandManager().registerCommands(
+                new QuickCommand("ping", AccessLevel.EVERYONE, e -> e.fastReply("Pong !"))
+        );
 
         try {
             bot.connectToDiscord();
@@ -41,15 +43,8 @@ public class TestBot {
             ModularBot.logger().error("App", e);
         }
 
-        Webhook logHook = bot.getShardForGuildId(264001800686796800L).getGuildById(264001800686796800L).getWebhooks().complete().get(0);
-
-        /*Webhooks.execute(logHook,
-                "Jean David",
-                "https://cdn.discordapp.com/attachments/302785106802638848/302790538627776512/sign-info-icon.png",
-                false,
-                "Salut !",
-                new MessageEmbed[] {new EmbedBuilder().setTitle("Yo !").build()}).queue();*/
-        ModularBot.logger().registerListener(new WebhookLogger(logHook));
+        //Webhook logHook = bot.getShardForGuildId(264001800686796800L).getGuildById(264001800686796800L).getWebhooks().complete().get(0);
+        //ModularBot.logger().registerListener(new WebhookLogger(logHook));
     }
 
     public static class CommandTest extends Command {
@@ -74,27 +69,14 @@ public class TestBot {
         }
 
         private void test(CommandEvent event) {
-            /*Waiter.awaitEvent(event.getJDA(),
-                    MessageReceivedEvent.class,
-                    e -> !e.getAuthor().equals(event.getJDA().getSelfUser()),
-                    e -> event.fastReply(e.getMessage().getRawContent()),
-                    () -> event.fastReply("Timeout !"),
-                    5000L,
-                    true);*/
+            EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("Hi {0} !")
+                    .setDescription("Please read the rules in the channel {1}.")
+                    .setColor(Color.GREEN);
 
-            /*Waiter.getNextEvent(event.getJDA(),
-                    MessageReceivedEvent.class,
-                    e -> !e.getAuthor().equals(event.getJDA().getSelfUser()),
-                    5000L);*/
+            EmbedBuilder formatted = Templates.ERROR_SIGNED(event.getAuthor(), "The error template.");
 
-            MessageReceivedEvent next = Waiter.getNextMessageFromUserInChannel(event.getJDA(),
-                    event.getAuthor(),
-                    event.getChannel(),
-                    5000L);
-            if (next == null)
-                event.fastReply("Timeout");
-            else
-                event.fastReply(next.getMessage().getRawContent());
+            event.getChannel().sendMessage(formatted.build()).queue();
         }
 
         private void yo(CommandEvent event) {
@@ -121,7 +103,7 @@ public class TestBot {
                     .addField("Message id #{3}", "Server id #{4}", true);
             event.getChannel().sendMessage(base.build()).queue();
 
-            EmbedTemplate template = new EmbedTemplate(base);
+            EmbedTemplate template = new EmbedTemplate(base.build());
 
             EmbedBuilder response = template.format(event.getTriggerEvent().getAuthor().getName(),
                     event.getChannel().getName(),

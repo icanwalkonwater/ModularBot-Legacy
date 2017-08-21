@@ -49,13 +49,13 @@ public class MiscUtils {
     /**
      * Format the timestamp to correspond the pattern.
      * The pattern can use:
-     *      %day% -> day of the month in 2 digits.
-     *      %month% -> month of the year in 2 digits.
-     *      %year% -> year in 4 digits.
-     *      %hour% -> hour of the day (24 hour clock) in 2 digits.
-     *      %minutes% -> minutes of the hour in 2 digits.
-     *      %seconds% -> seconds if the minute in 2 digits.
-     *      %nano% -> nanoseconds of the minute in 9 digits.
+     *      {day} -> day of the month in 2 digits.
+     *      {month} -> month of the year in 2 digits.
+     *      {year} -> year in 4 digits.
+     *      {hour} -> hour of the day (24 hour clock) in 2 digits.
+     *      {minutes} -> minutes of the hour in 2 digits.
+     *      {seconds} -> seconds if the minute in 2 digits.
+     *      {nano} -> nanoseconds of the minute in 9 digits.
      * @param timestamp the timestamp to format.
      * @param pattern the pattern to use.
      * @return a String of the formatted timestamp that as given.

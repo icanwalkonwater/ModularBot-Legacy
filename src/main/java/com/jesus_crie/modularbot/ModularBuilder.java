@@ -4,20 +4,20 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.listener.CommandHandler;
-import com.jesus_crie.modularbot.listener.DefaultCommandHandler;
+import com.jesus_crie.modularbot.listener.DefaultModularCommandListener;
+import com.jesus_crie.modularbot.listener.ModularCommandListener;
 import com.jesus_crie.modularbot.log.ConsoleLogger;
-import com.jesus_crie.modularbot.log.DefaultLogger;
+import com.jesus_crie.modularbot.log.DefaultLogHandler;
 import com.jesus_crie.modularbot.log.Log;
-import com.jesus_crie.modularbot.log.Logger;
+import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.stats.Stats;
 
 public class ModularBuilder {
 
     private final String token;
     private ConfigHandler config;
-    private Logger logger;
-    private CommandHandler command;
+    private LogHandler logger;
+    private ModularCommandListener command;
     private boolean useAudio = false;
     private boolean useStats = false;
 
@@ -54,21 +54,21 @@ public class ModularBuilder {
      * Use if you want to customize the way that the logs are handled.
      * To modify the way that logs are printed you need to override {@link Log#toString()}
      * and use a custom handle to instantiate your overrided version of {@link Log}.
-     * @param handler your custom implementation of {@link Logger}.
+     * @param handler your custom implementation of {@link LogHandler}.
      * @return the current builder.
      */
-    public ModularBuilder useCustomLogHandler(Logger handler) {
+    public ModularBuilder useCustomLogHandler(LogHandler handler) {
         logger = handler;
         return this;
     }
 
     /**
      * If you want to customize the way that command errors are handled and printed.
-     * It can also act like a middleware with {@link CommandHandler#onCommand(CommandEvent)}.
-     * @param handler an implementation of {@link CommandHandler}.
+     * It can also act like a middleware with {@link ModularCommandListener#onCommand(CommandEvent)}.
+     * @param handler an implementation of {@link ModularCommandListener}.
      * @return the current builder.
      */
-    public ModularBuilder useCustomCommandHandler(CommandHandler handler) {
+    public ModularBuilder useCustomCommandHandler(ModularCommandListener handler) {
         command = handler;
         return this;
     }
@@ -95,7 +95,7 @@ public class ModularBuilder {
 
     /**
      * Create an instance of {@link ModularBot} with the parameter given before
-     * or default values and handlers such as {@link SimpleConfig} and {@link DefaultLogger}.
+     * or default values and handlers such as {@link SimpleConfig} and {@link DefaultLogHandler}.
      * @return a new instance of {@link ModularBot}.
      */
     @SuppressWarnings("ResultOfMethodCallIgnored")
@@ -108,10 +108,10 @@ public class ModularBuilder {
         if (config == null)
             config = new SimpleConfig("./config.json", new Version(1, 0, 0, 0), "ModularBot");
         if (logger == null)
-            logger = new DefaultLogger();
+            logger = new DefaultLogHandler();
         logger.registerListener(new ConsoleLogger());
         if (command == null)
-            command = new DefaultCommandHandler();
+            command = new DefaultModularCommandListener();
         if (useStats)
             Stats.enable();
 

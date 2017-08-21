@@ -5,7 +5,7 @@ import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.command.QuickCommand;
 import com.jesus_crie.modularbot.exception.*;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.listener.CommandHandler;
+import com.jesus_crie.modularbot.listener.ModularCommandListener;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -16,9 +16,9 @@ import java.util.function.Consumer;
 public class CommandManager {
 
     private final List<Command> discordCommands = new ArrayList<>();
-    private final CommandHandler handler;
+    private final ModularCommandListener handler;
 
-    public CommandManager(CommandHandler handler) {
+    public CommandManager(ModularCommandListener handler) {
         this.handler = handler;
     }
 

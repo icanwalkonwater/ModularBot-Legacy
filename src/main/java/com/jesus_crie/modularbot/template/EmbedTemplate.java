@@ -7,13 +7,13 @@ import java.util.Objects;
 
 public class EmbedTemplate extends ModularTemplate<MessageEmbed, EmbedBuilder> {
 
-    public EmbedTemplate(EmbedBuilder builder) {
-        super(builder.build());
+    public EmbedTemplate(MessageEmbed embed) {
+        super(embed);
     }
 
     @Override
     public EmbedBuilder format(final Object... args) {
-        EmbedBuilder builder = new EmbedBuilder();
+        final EmbedBuilder builder = new EmbedBuilder();
 
         // Title and URL. Format
         if (Objects.nonNull(formatter.getTitle()))

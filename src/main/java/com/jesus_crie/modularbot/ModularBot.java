@@ -1,8 +1,8 @@
 package com.jesus_crie.modularbot;
 
 import com.jesus_crie.modularbot.config.ConfigHandler;
-import com.jesus_crie.modularbot.listener.CommandHandler;
-import com.jesus_crie.modularbot.log.Logger;
+import com.jesus_crie.modularbot.listener.ModularCommandListener;
+import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.manager.CommandManager;
 import com.jesus_crie.modularbot.manager.ModularEventManager;
 import com.jesus_crie.modularbot.sharding.ModularJDABuilder;
@@ -40,7 +40,7 @@ import static com.jesus_crie.modularbot.utils.F.f;
 public class ModularBot {
 
     private static ModularBot instance;
-    private static Logger logger;
+    private static LogHandler logger;
     private static boolean isReady = false;
 
     private final String token;
@@ -57,11 +57,11 @@ public class ModularBot {
      * Package-Private builder.
      * @param token the token provided.
      * @param config a custom {@link ConfigHandler}.
-     * @param logger a custom {@link Logger}.
-     * @param command a custom {@link CommandHandler}.
+     * @param logger a custom {@link LogHandler}.
+     * @param command a custom {@link ModularCommandListener}.
      * @param useAudio if the audio must be enabled.
      */
-    ModularBot(String token, ConfigHandler config, Logger logger, CommandHandler command, boolean useAudio) {
+    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, boolean useAudio) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
@@ -81,7 +81,7 @@ public class ModularBot {
         instance = this;
         shards = new ArrayList<>();
         ModularBot.logger = logger;
-        logger.info("Start", "Logger initialized !");
+        logger.info("Start", "LogHandler initialized !");
 
         this.token = token;
         this.config = config;
@@ -359,10 +359,10 @@ public class ModularBot {
     }
 
     /**
-     * Get the current implementation of the {@link Logger} that is used by the application.
-     * @return an implementation of {@link Logger}.
+     * Get the current implementation of the {@link LogHandler} that is used by the application.
+     * @return an implementation of {@link LogHandler}.
      */
-    public static Logger logger() {
+    public static LogHandler logger() {
         return logger;
     }
 

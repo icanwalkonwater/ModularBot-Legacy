@@ -7,7 +7,7 @@ import net.dv8tion.jda.core.exceptions.PermissionException;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
-public class DefaultCommandHandler implements CommandHandler {
+public class DefaultModularCommandListener implements ModularCommandListener {
 
     @Override
     public void onCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException, CommandFailedException, NoPatternException {
@@ -66,6 +66,6 @@ public class DefaultCommandHandler implements CommandHandler {
 
     @Override
     public void onCommandErrorUnknown(CommandException e) {
-        e.getEvent().getChannel().sendMessage(Templates.ERROR.format(f("An unknown error happened: **%s** !\nPlease contact an administrator !", e.getMessage())).build()).queue();
+        e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), f("An unknown error happened: **%s** !\nPlease contact an administrator !", e.getMessage())).build()).queue();
     }
 }

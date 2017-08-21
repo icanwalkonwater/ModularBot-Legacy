@@ -5,12 +5,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class DefaultLogger implements Logger {
+public class DefaultLogHandler implements LogHandler {
 
     protected final List<LogListener> listeners = new ArrayList<>();
 
     /**
-     * @see Logger#handle(LogLevel, String, String, Object)
+     * @see LogHandler#handle(LogLevel, String, String, Object)
      */
     @Override
     public void handle(LogLevel level, String source, String message, Object content) {
@@ -23,7 +23,7 @@ public class DefaultLogger implements Logger {
     }
 
     /**
-     * @see Logger#registerListener(LogListener...)
+     * @see LogHandler#registerListener(LogListener...)
      */
     @Override
     public void registerListener(LogListener... listeners) {
@@ -31,7 +31,7 @@ public class DefaultLogger implements Logger {
     }
 
     /**
-     * @see Logger#unregisterListener(LogListener...)
+     * @see LogHandler#unregisterListener(LogListener...)
      */
     @Override
     public void unregisterListener(LogListener... listeners) {
