@@ -2,7 +2,7 @@ package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
 
-public interface Logger {
+public interface LogHandler {
 
     /**
      * Handle anything that need to be logged.
@@ -14,7 +14,7 @@ public interface Logger {
     void handle(LogLevel level, String source, String message, Object content);
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String, Object)} with no object.
+     * Overload of {@link LogHandler#handle(LogLevel, String, String, Object)} with no object.
      */
     default void handle(LogLevel level, String from, String message) {
         handle(level, from, message, null);
@@ -33,7 +33,7 @@ public interface Logger {
     void unregisterListener(LogListener... listeners);
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
      * Log something with the {@link LogLevel#DEBUG} level.
      */
     default void debug(String from, String message) {
@@ -41,7 +41,7 @@ public interface Logger {
     }
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
      * Log something with the {@link LogLevel#INFO} level.
      */
     default void info(String from, String message) {
@@ -49,7 +49,7 @@ public interface Logger {
     }
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
      * Log something with the {@link LogLevel#WARNING} level.
      */
     default void warning(String from, String message) {
@@ -57,7 +57,7 @@ public interface Logger {
     }
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
      * Log something with the {@link LogLevel#FATAL} level.
      */
     default void fatal(String from, String message) {
@@ -65,7 +65,7 @@ public interface Logger {
     }
 
     /**
-     * Overload of {@link Logger#handle(LogLevel, String, String)}
+     * Overload of {@link LogHandler#handle(LogLevel, String, String)}
      * Used to log {@link Exception} and their stack trace.
      * @param from a String representing the source of the log, for example "Command"
      * @param e the exception to log.

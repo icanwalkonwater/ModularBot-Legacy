@@ -16,7 +16,8 @@ public class WebhookLogger implements LogListener {
     private static final EmbedTemplate template = new EmbedTemplate(new EmbedBuilder()
             .setAuthor("{0}", null, Icons.INFORMATION)
             .setDescription("{1}")
-            .setFooter("{2}", null));
+            .setFooter("{2}", null)
+            .build());
     private final Webhook hook;
 
     public WebhookLogger(Webhook webhook) {

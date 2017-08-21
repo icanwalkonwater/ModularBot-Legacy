@@ -2,7 +2,7 @@ package com.jesus_crie.modularbot.listener;
 
 import com.jesus_crie.modularbot.exception.*;
 
-public interface CommandHandler {
+public interface ModularCommandListener {
 
     /**
      * Triggered when a command is detected.
