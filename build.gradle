@@ -17,8 +17,8 @@ repositories {
 }
 
 dependencies {
-    compile 'net.dv8tion:JDA:3.2.0_242'
-    compile 'com.sedmelluq:lavaplayer:1.2.42'
+    compile 'net.dv8tion:JDA:3.2.0_251'
+    compile 'com.sedmelluq:lavaplayer:1.2.43'
     compile 'org.slf4j:slf4j-nop:1.7.21'
 }
 

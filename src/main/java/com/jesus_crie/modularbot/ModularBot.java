@@ -11,6 +11,7 @@ import com.jesus_crie.modularbot.utils.MiscUtils;
 import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.utils.Checks;
@@ -46,6 +47,7 @@ public class ModularBot {
     private final String token;
     private final boolean useAudio;
     private int maxShard;
+    private Game readyStatus;
 
     private final ConfigHandler config;
     private final CommandManager commandManager;
@@ -60,8 +62,9 @@ public class ModularBot {
      * @param logger a custom {@link LogHandler}.
      * @param command a custom {@link ModularCommandListener}.
      * @param useAudio if the audio must be enabled.
+     * @param readyStatus the status to be displayed when the bot is fully operational.
      */
-    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, boolean useAudio) {
+    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, boolean useAudio, Game readyStatus) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
@@ -75,7 +78,9 @@ public class ModularBot {
         Checks.notNull(config, "config");
         Checks.notNull(logger, "logger");
         Checks.notNull(command, "command");
+        Checks.notNull(readyStatus, "readyStatus");
 
+        this.readyStatus = readyStatus;
         commandManager = new CommandManager(command);
 
         instance = this;
@@ -145,6 +150,8 @@ public class ModularBot {
         }
 
         shards.sort(ModularShard::compareTo);
+
+        dispatchCommand(s -> s.getPresence().setGame(readyStatus));
     }
 
     /**
@@ -186,6 +193,7 @@ public class ModularBot {
      * @param force if true {@link ModularShard#shutdownNow()} will be used instead of {@link ModularShard#shutdown()}
      */
     private void shutdownShards(boolean force) {
+        dispatchCommand(s -> s.getPresence().setGame(Status.STOPPING));
         if (force) {
             dispatchCommand(ModularShard::shutdown);
         } else {

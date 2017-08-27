@@ -10,6 +10,10 @@ import java.util.concurrent.CompletableFuture;
 
 public class ModularDialog extends CompletableFuture<Boolean> {
 
+    /**
+     * Use {@link DialogBuilder}.
+     * @see DialogBuilder
+     */
     ModularDialog(final ModularShard shard,
                   final Message message,
                   final User author,
@@ -17,20 +21,33 @@ public class ModularDialog extends CompletableFuture<Boolean> {
                   final String unicodeDeny,
                   final long timeout,
                   final boolean deleteAfter) {
-        final MessageReactionAddEvent event = Waiter.getNextEvent(shard, MessageReactionAddEvent.class,
-                e -> e.getMessageIdLong() == message.getIdLong()
-                        && e.getUser().getIdLong() == author.getIdLong()
-                        && (e.getReactionEmote().getName().equals(unicodeAccept)
+        try {
+            message.addReaction(unicodeAccept).complete();
+            message.addReaction(unicodeDeny).complete();
+
+            final MessageReactionAddEvent event = Waiter.getNextEvent(shard, MessageReactionAddEvent.class,
+                    e -> e.getMessageIdLong() == message.getIdLong()
+                            && e.getUser().getIdLong() == author.getIdLong()
+                            && (e.getReactionEmote().getName().equals(unicodeAccept)
                             || e.getReactionEmote().getName().equals(unicodeDeny)), timeout);
 
-        if (event != null) {
-            if (event.getReactionEmote().getName().equals(unicodeAccept))
-                complete(true);
+            if (deleteAfter)
+                message.delete().queue();
             else
-                complete(false);
-        } else {
-            complete(null);
-        }
+                message.clearReactions().queue();
+
+            if (event != null)
+                if (event.getReactionEmote().getName().equals(unicodeAccept))
+                    complete(true);
+                else
+                    complete(false);
+            else
+                complete(null);
+        } catch (Exception ignore) {}
+    }
+
+    private void perform() {
+
     }
 
     /**

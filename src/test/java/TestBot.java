@@ -8,15 +8,13 @@ import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
-import com.jesus_crie.modularbot.utils.MiscUtils;
-import com.jesus_crie.modularbot.utils.Waiter;
+import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.core.entities.Message;
 
 import java.awt.*;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
@@ -80,13 +78,14 @@ public class TestBot {
         }
 
         private void yo(CommandEvent event) {
-            event.fastReply("Type something");
+            Message targetMessage = event.getChannel().sendMessage(Templates.SIMPLE_DIALOG.format("Vous confirmez jean-pierre ?").build()).complete();
 
-            MessageReceivedEvent next = Waiter.getNextMessageFromUserInChannel(event.getJDA(), event.getAuthor(), event.getChannel(), MiscUtils.convertTime(10, TimeUnit.SECONDS));
-            if (next != null)
-                event.fastReply("You just said: " + next.getMessage().getRawContent());
-            else
-                event.fastReply("Timeout !");
+            Boolean result = new DialogBuilder()
+                    .targetUser(event.getAuthor())
+                    .deleteAfterTrigger()
+                    .useTimeout(10000)
+                    .bindAndRetrieve(targetMessage);
+            event.fastReply(result == null ? "timeout" : result.toString());
         }
 
         private void hi(CommandEvent event, List<Object> args) {
