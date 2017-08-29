@@ -165,13 +165,13 @@ public class Argument<T> implements Cloneable {
      * @param toMatch the string to test.
      * @return true if there is a match.
      */
-    boolean match(String toMatch) {
-        return pattern.matcher(toMatch).matches();
+    boolean noMatch(String toMatch) {
+        return !pattern.matcher(toMatch).matches();
     }
 
     /**
      * Used to map the given String to the real Object {@link T}.
-     * {@link #match(String)} need to be called before.
+     * {@link #noMatch(String)} need to be called before.
      * @param shard the current {@link ModularShard}.
      * @param toMatch the argument that was provided.
      * @return an instance of {@link T} made by the matcher or null if there was no matches.

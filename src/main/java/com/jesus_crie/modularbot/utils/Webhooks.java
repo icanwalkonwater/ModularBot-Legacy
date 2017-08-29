@@ -45,7 +45,7 @@ public class Webhooks {
     }
 
     /**
-     * Can be used to execute any webhook (wich is not by default in JDA, don't ask).
+     * Can be used to execute any webhook (which is not by default in JDA, don't ask).
      * If the bot isn't ready, an {@link net.dv8tion.jda.core.requests.RestAction.EmptyRestAction} will be returned.
      * @param hook the webhook to execute.
      * @param user (optional) the username that will be displayed instead of the webhook's name.
@@ -63,7 +63,7 @@ public class Webhooks {
 
         Checks.notNull(hook, "webhook");
         if ((content == null || content.isEmpty()) && embeds == null)
-            throw new IllegalArgumentException("One of those is requiered: content, embeds");
+            throw new IllegalArgumentException("One of those is required: content, embeds");
 
         JSONObject body = new JSONObject();
         if (content != null)

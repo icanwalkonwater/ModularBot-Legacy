@@ -39,8 +39,8 @@ public class CommandPattern {
         this(args, (e, a) -> action.accept(e));
     }
 
-    public boolean hasArgument() {
-        return !arguments.isEmpty();
+    public boolean noArgument() {
+        return arguments.isEmpty();
     }
 
     /**
@@ -51,7 +51,7 @@ public class CommandPattern {
     public boolean matchArgs(String[] args) {
         Checks.notNull(args, "args");
 
-        if (!hasArgument())
+        if (noArgument())
             return args.length <= 0;
 
         if (args.length < arguments.size())
@@ -60,14 +60,14 @@ public class CommandPattern {
         for (int i = 0; i < args.length; i++) {
             if (i >= arguments.size()) {
                 if (arguments.get(arguments.size() - 1).isRepeatable()) {
-                    if (!arguments.get(arguments.size() - 1).match(args[i]))
+                    if (arguments.get(arguments.size() - 1).noMatch(args[i]))
                         return false;
                     continue;
                 } else
                     return false;
             }
 
-            if (!arguments.get(i).match(args[i]))
+            if (arguments.get(i).noMatch(args[i]))
                 return false;
         }
 
@@ -82,7 +82,7 @@ public class CommandPattern {
      * @return a list of objects.
      */
     private List<Object> collectArgs(ModularShard shard, String[] args) {
-        if (!hasArgument())
+        if (noArgument())
             return null;
 
         List<Object> out = new ArrayList<>();

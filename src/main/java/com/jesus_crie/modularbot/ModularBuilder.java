@@ -11,6 +11,9 @@ import com.jesus_crie.modularbot.log.DefaultLogHandler;
 import com.jesus_crie.modularbot.log.Log;
 import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.stats.Stats;
+import net.dv8tion.jda.core.entities.Game;
+
+import static com.jesus_crie.modularbot.utils.F.f;
 
 public class ModularBuilder {
 
@@ -20,6 +23,7 @@ public class ModularBuilder {
     private ModularCommandListener command;
     private boolean useAudio = false;
     private boolean useStats = false;
+    private Game readyStatus;
 
     /**
      * Some peoples may prefer this way to create the builder.
@@ -94,6 +98,16 @@ public class ModularBuilder {
     }
 
     /**
+     * If you want to override the default ready message displayed by your bot.
+     * @param status the {@link Game} to show.
+     * @return the current builder.
+     */
+    public ModularBuilder useCustomReadyStatus(Game status) {
+        readyStatus = status;
+        return this;
+    }
+
+    /**
      * Create an instance of {@link ModularBot} with the parameter given before
      * or default values and handlers such as {@link SimpleConfig} and {@link DefaultLogHandler}.
      * @return a new instance of {@link ModularBot}.
@@ -113,8 +127,10 @@ public class ModularBuilder {
         if (command == null)
             command = new DefaultModularCommandListener();
         if (useStats)
-            Stats.enable();
+            Stats.setEnable(true);
+        if (readyStatus == null)
+            readyStatus = Game.of(f("%shelp - v%s", config.getPrefixForGuild(null), config.getVersion().toString()));
 
-        return new ModularBot(token, config, logger, command, useAudio);
+        return new ModularBot(token, config, logger, command, useAudio, readyStatus);
     }
 }

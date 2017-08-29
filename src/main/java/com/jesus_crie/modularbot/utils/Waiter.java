@@ -90,7 +90,7 @@ public class Waiter {
      * @param shard the current shard.
      * @param from the desired author of the message.
      * @param channel the event must come from this channel.
-     * @param timeout the amout of time in milliseconds before the method times out.
+     * @param timeout the amount of time in milliseconds before the method times out.
      * @return the next message of the user in the desired channel or null if the method has timed out.
      */
     public static MessageReceivedEvent getNextMessageFromUserInChannel(final ModularShard shard, final User from, final MessageChannel channel, final long timeout) {

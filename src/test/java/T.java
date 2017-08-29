@@ -1,29 +1,26 @@
-import com.jesus_crie.modularbot.template.EmbedTemplate;
-import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.MessageEmbed;
+import org.apache.commons.collections4.map.UnmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class T {
 
     public static void main(String[] args) {
-        String format1 = "Yo {0}";
-        String format2 = "Salut {1} !";
-        String format3 = "U suck {0} and {1} !";
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < 20; i++) {
+            map.put(i, 42);
+        }
 
-        String arg0 = "Pepe";
-        String arg1 = "Michel";
+        HashMap<Integer, Integer> map1 = new HashMap<>();
+        map1.putAll(map);
 
-        //print(MessageFormat.format(format1, arg0, arg1));
-        //print(MessageFormat.format(format2, arg0, arg1));
-        //print(MessageFormat.format(format3, arg0, arg1));
+        Map<Integer, Integer> unmodifiable = UnmodifiableMap.unmodifiableMap(map1);
 
-        EmbedBuilder builder = new EmbedBuilder()
-                .setTitle("Hy {0} !")
-                .setFooter("Created by {1} !", null);
-        EmbedTemplate template = new EmbedTemplate(builder.build());
+        unmodifiable.forEach((k, v) -> print(k + ": " + v));
+    }
 
-        MessageEmbed formatted = template.format("me", "an awesome person").build();
-        print(formatted.getTitle());
-        print(formatted.getFooter().getText());
+    public static void test() throws RuntimeException {
+        throw new RuntimeException();
     }
 
     public static class Test {
