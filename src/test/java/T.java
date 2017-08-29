@@ -1,18 +1,22 @@
-import com.jesus_crie.modularbot.stats.bundle.Bundle;
-import com.jesus_crie.modularbot.stats.bundle.BundleBuilder;
+import org.apache.commons.collections4.map.UnmodifiableMap;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class T {
 
     public static void main(String[] args) {
-        Bundle b = new BundleBuilder()
-                .append("KEY_1", 42)
-                .append("KEY_2", new Test(false))
-                .append("KEY_3", "Hey you bastard !")
-                .build();
-        print(b.getInteger("KEY_1"));
-        print(b.getObject("KEY_2"));
-        int key3 = "KEY_3".hashCode();
-        print(b.getString(key3));
+        HashMap<Integer, Integer> map = new HashMap<>();
+        for (int i = 0; i < 20; i++) {
+            map.put(i, 42);
+        }
+
+        HashMap<Integer, Integer> map1 = new HashMap<>();
+        map1.putAll(map);
+
+        Map<Integer, Integer> unmodifiable = UnmodifiableMap.unmodifiableMap(map1);
+
+        unmodifiable.forEach((k, v) -> print(k + ": " + v));
     }
 
     public static void test() throws RuntimeException {

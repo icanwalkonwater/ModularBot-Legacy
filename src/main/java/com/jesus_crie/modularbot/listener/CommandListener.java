@@ -23,13 +23,13 @@ public class CommandListener extends ListenerAdapter {
         final String[] fullCommand = event.getMessage().getRawContent().substring(ModularBot.getConfig().getPrefixForGuild(event.getGuild()).length()).split(" ");
         final Command command = ModularBot.getCommandManager().getCommand(fullCommand[0]);
 
-        // Stats.
-        Stats.incrementCommand();
-
         if (command == null) {
             ModularBot.getCommandManager().handleCommandError(new CommandNotFoundException(event, fullCommand[0]));
             return;
         }
+
+        // Stats
+        Stats.incrementCommand(command.getName());
 
         // Create the event.
         final CommandEvent cEvent = new CommandEvent(command, event, fullCommand);

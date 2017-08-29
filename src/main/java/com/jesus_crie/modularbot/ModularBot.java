@@ -7,6 +7,7 @@ import com.jesus_crie.modularbot.manager.CommandManager;
 import com.jesus_crie.modularbot.manager.ModularEventManager;
 import com.jesus_crie.modularbot.sharding.ModularJDABuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
+import com.jesus_crie.modularbot.stats.Stats;
 import com.jesus_crie.modularbot.utils.MiscUtils;
 import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
@@ -109,6 +110,8 @@ public class ModularBot {
      * @throws RateLimitedException if we are rate-limited.
      */
     public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
+        logger.info("Start", "Reset stats");
+        Stats.reset();
         logger.info("Start", "Attempting to spawn and start shards...");
         restartShards();
 

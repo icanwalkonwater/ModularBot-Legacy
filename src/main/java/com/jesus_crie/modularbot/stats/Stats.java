@@ -8,10 +8,10 @@ import com.jesus_crie.modularbot.stats.bundle.Keys;
 import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.GuildVoiceState;
-import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.Event;
 
 import java.lang.management.ManagementFactory;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -20,16 +20,19 @@ public class Stats {
     private static boolean enable = false;
 
     private static final long start = System.currentTimeMillis();
-    private static AtomicInteger commandExecuted = new AtomicInteger(0);
-    private static AtomicInteger jdaEvent = new AtomicInteger(0);
+    private static final AtomicInteger commandExecuted = new AtomicInteger(0);
+    private static final AtomicInteger jdaEvent = new AtomicInteger(0);
+    private static final ConcurrentHashMap<String, AtomicInteger> commands = new ConcurrentHashMap<>();
 
     /**
      * Use to reset all of stored stats.
      * Do not affect start time and exterior information like processors count, memory, ect...
      */
     public static void reset() {
-        commandExecuted = new AtomicInteger(0);
-        jdaEvent = new AtomicInteger(0);
+        commandExecuted.set(0);
+        jdaEvent.set(0);
+        commands.clear();
+        ModularBot.getCommandManager().getCommands().forEach(c -> commands.put(c.getName(), new AtomicInteger(0)));
     }
 
     /**
@@ -37,8 +40,12 @@ public class Stats {
      * Used to count how many commands have been executed.
      * Automatically called when a command is triggered.
      */
-    public static void incrementCommand() {
+    public static void incrementCommand(String name) {
         commandExecuted.incrementAndGet();
+
+        // Can be optimized.
+        commands.putIfAbsent(name, new AtomicInteger(0)); // If a command was registered between reset() and this method.
+        commands.get(name).incrementAndGet();
     }
 
     /**
@@ -74,7 +81,7 @@ public class Stats {
                 .append(Keys.COMMAND_EXECUTED, commandExecuted.get())
                 .append(Keys.JDA_EVENT, jdaEvent.get())
                 .append(Keys.TOTAL_GUILD, ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().size(), Collectors.summingInt(i -> (int) i)))
-                .append(Keys.TOTAL_USERS, ModularBot.instance().collectCumulativeShardInfos(JDAImpl::getUsers, (u, d) -> !d.contains(u)))
+                .append(Keys.TOTAL_USERS, ModularBot.instance().collectCumulativeShardInfos(s -> s.getUsers().size(), Collectors.summingInt(i -> (int) i)))
                 .append(Keys.THREAD_COUNT, ManagementFactory.getThreadMXBean().getThreadCount())
                 .append(Keys.SHARD_COUNT, ModularBot.instance().getShards().size())
                 .append(Keys.TEXT_CHANNEL_COUNT, ModularBot.instance().collectCumulativeShardInfos(s -> s.getTextChannels().size(), Collectors.summingInt(i -> (int) i)))
@@ -103,14 +110,29 @@ public class Stats {
     }
 
     /**
+     * Collect a {@link Bundle} containing how many times a command has been triggered.
+     * The keys are made like this: "COMMAND_{name}" in uppercase.
+     * For example the key for the "help" command will be "COMMAND_HELP".
+     * @return a {@link Bundle} with information on how many times a command has been triggered.
+     */
+    public static Bundle collectCommands() {
+        final BundleBuilder builder = new BundleBuilder();
+        commands.forEach((k, v) -> builder.append("COMMAND_" + k.toUpperCase(), v.get()));
+        return builder.build();
+    }
+
+    /**
      * Collect every possible data about the bot to a {@link Bundle}.
      * This include global stats that are accessible at the root and a bundle
      * per guild accessible using the key "GUILD_{id}" to get a sub bundle.
+     *
+     * If you use this periodically for graph remember to use {@link #reset()}.
      * @return a {@link Bundle} containing global stats and a sub bundle for each guild.
      */
     public static Bundle collectEverything() {
         final BundleBuilder builder = new BundleBuilder();
         builder.merge(collectGlobal());
+        builder.merge(collectCommands());
         ModularBot.instance().dispatchCommand(s -> s.getGuilds().forEach(g -> builder.append("GUILD_" + g.getIdLong(), collectGuild(g))));
 
         return builder.build();
