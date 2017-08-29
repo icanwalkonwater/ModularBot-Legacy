@@ -164,6 +164,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      * @return 0 if equals, 1 if <b>this</b> as an higher id than the other shard.
      *      -1 if this shard has an id inferior than the other shard.
      */
+    @SuppressWarnings("NullableProblems")
     @Override
     public int compareTo(final ModularShard shard) {
         Checks.notNull(shard, "shard");

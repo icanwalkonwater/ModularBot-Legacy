@@ -1,20 +1,18 @@
-import java.util.HashMap;
-import java.util.Map;
-import java.util.stream.Collectors;
+import com.jesus_crie.modularbot.stats.bundle.Bundle;
+import com.jesus_crie.modularbot.stats.bundle.BundleBuilder;
 
 public class T {
 
     public static void main(String[] args) {
-        print("Begin");
-        try {
-            test();
-            print("Next");
-        } catch (RuntimeException ignore) {}
-        print("Ended");
-
-        Map<Integer, String> map = new HashMap<>();
-        map = map.entrySet().stream().collect(
-                Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue, (p, n) -> p, HashMap::new));
+        Bundle b = new BundleBuilder()
+                .append("KEY_1", 42)
+                .append("KEY_2", new Test(false))
+                .append("KEY_3", "Hey you bastard !")
+                .build();
+        print(b.getInteger("KEY_1"));
+        print(b.getObject("KEY_2"));
+        int key3 = "KEY_3".hashCode();
+        print(b.getString(key3));
     }
 
     public static void test() throws RuntimeException {

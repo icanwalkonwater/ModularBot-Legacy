@@ -127,7 +127,7 @@ public class ModularBuilder {
         if (command == null)
             command = new DefaultModularCommandListener();
         if (useStats)
-            Stats.enable();
+            Stats.setEnable(true);
         if (readyStatus == null)
             readyStatus = Game.of(f("%shelp - v%s", config.getPrefixForGuild(null), config.getVersion().toString()));
 

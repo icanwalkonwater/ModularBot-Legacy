@@ -5,6 +5,7 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import static com.jesus_crie.modularbot.utils.F.f;
@@ -20,6 +21,12 @@ public class MiscUtils {
         Checks.notNull(array, name);
         if (array.length <= 0)
             throw new IllegalArgumentException(name + " may not be null");
+    }
+
+    public static void notEmpty(Map<?, ?> map, String name) {
+        Checks.notNull(map, name);
+        if (map.size() <= 0)
+            throw new IllegalArgumentException(name + " may not be empty");
     }
 
     public static String collectStackTrace(Throwable e) {

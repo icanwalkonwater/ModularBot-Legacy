@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collector;
@@ -43,11 +44,11 @@ public class ModularBot {
     private static ModularBot instance;
     private static LogHandler logger;
     private static boolean isReady = false;
+    private static boolean useAudio;
 
     private final String token;
-    private final boolean useAudio;
     private int maxShard;
-    private Game readyStatus;
+    private final Game readyStatus;
 
     private final ConfigHandler config;
     private final CommandManager commandManager;
@@ -90,7 +91,7 @@ public class ModularBot {
 
         this.token = token;
         this.config = config;
-        this.useAudio = useAudio;
+        ModularBot.useAudio = useAudio;
 
         logger.info("Start", "Loading config...");
         try {
@@ -305,6 +306,26 @@ public class ModularBot {
     }
 
     /**
+     * Used to collect infos across shards and collect them into one list.
+     * Mainly used for stats.
+     * @param action used to collect data in each shards and convert them into {@link T}.
+     * @param filter used to determinate if an entry can be merged with the others. The 1st argument is the object
+     *               and the 2nd is a list containing the current state of the merging.
+     * @param <T> the output will be a list of this type.
+     * @return a list of {@link T} containing merged data from all shards.
+     */
+    public <T> List<T> collectCumulativeShardInfos(Function<ModularShard, T> action, BiPredicate<T, List<T>> filter) {
+        List<T> datas = new ArrayList<>();
+        shards.stream()
+                .map(action)
+                .forEach(t -> {
+                    if (filter.test(t, datas))
+                        datas.add(t);
+                });
+        return datas;
+    }
+
+    /**
      * Query the recommended amount of shards from the discord API.
      * @return the recommended amount of shards.
      */
@@ -364,6 +385,14 @@ public class ModularBot {
      */
     public static boolean isReady() {
         return isReady;
+    }
+
+    /**
+     * Check if the audio is enabled in this instance of ModularBot.
+     * @return true if the audio is enabled, otherwise false.
+     */
+    public static boolean isAudioEnabled() {
+        return useAudio;
     }
 
     /**

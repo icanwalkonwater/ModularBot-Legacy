@@ -2,6 +2,13 @@ package com.jesus_crie.modularbot.stats;
 
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.ModularBuilder;
+import com.jesus_crie.modularbot.stats.bundle.Bundle;
+import com.jesus_crie.modularbot.stats.bundle.BundleBuilder;
+import com.jesus_crie.modularbot.stats.bundle.Keys;
+import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.GuildVoiceState;
+import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.events.Event;
 
 import java.lang.management.ManagementFactory;
@@ -43,17 +50,10 @@ public class Stats {
     }
 
     /**
-     * Use to enable the stat system.
+     * Use to enable/disable the stat system.
      */
-    public static void enable() {
-        enable = true;
-    }
-
-    /**
-     * Use to disable the stat system.
-     */
-    public static void disable() {
-        enable = false;
+    public static void setEnable(boolean state) {
+        enable = state;
     }
 
     /**
@@ -65,110 +65,54 @@ public class Stats {
     }
 
     /**
-     * Create a bundle that contains unmodifiable stats about a lot of things.
+     * Create a bundle that contains unmodifiable stats about a lot of things across the shards.
      * If you have a lot of guild, this can take a lot of time and memory, use with caution.
      * @return a {@link Bundle} that contains unmodifiable values.
      */
-    public static Bundle toBundle() {
-        return new Bundle(commandExecuted.get(),
-                jdaEvent.get(),
-                ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getGuilds().size(),
-                        Collectors.summingInt(i -> (int) i)
-                ),
-                ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getUsers().size(),
-                        Collectors.summingInt(i -> (int) i)
-                ),
-                ManagementFactory.getThreadMXBean().getThreadCount(),
-                ModularBot.instance().getShards().size(),
-                ModularBot.instance().collectCumulativeShardInfos(
-                        shard -> shard.getGuilds().stream()
-                                .mapToInt(g -> g.getAudioManager().isConnected() ? 1 : 0)
-                                .sum(),
-                        Collectors.summingInt(i -> (int) i)
-                ),
-                Runtime.getRuntime().freeMemory(),
-                Runtime.getRuntime().maxMemory(),
-                Runtime.getRuntime().availableProcessors());
+    public static Bundle collectGlobal() {
+        return new BundleBuilder()
+                .append(Keys.COMMAND_EXECUTED, commandExecuted.get())
+                .append(Keys.JDA_EVENT, jdaEvent.get())
+                .append(Keys.TOTAL_GUILD, ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().size(), Collectors.summingInt(i -> (int) i)))
+                .append(Keys.TOTAL_USERS, ModularBot.instance().collectCumulativeShardInfos(JDAImpl::getUsers, (u, d) -> !d.contains(u)))
+                .append(Keys.THREAD_COUNT, ManagementFactory.getThreadMXBean().getThreadCount())
+                .append(Keys.SHARD_COUNT, ModularBot.instance().getShards().size())
+                .append(Keys.TEXT_CHANNEL_COUNT, ModularBot.instance().collectCumulativeShardInfos(s -> s.getTextChannels().size(), Collectors.summingInt(i -> (int) i)))
+                .append(Keys.VOICE_CHANNEL_COUNT, ModularBot.instance().collectCumulativeShardInfos(s -> s.getVoiceChannels().size(), Collectors.summingInt(i -> (int) i)))
+                .append(Keys.AUDIO_CONNECTION, !ModularBot.isAudioEnabled() ? 0 :
+                                ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().stream().mapToInt(g -> g.getAudioManager().isConnected() ? 1 : 0).sum(),
+                                Collectors.summingInt(i -> (int) i)))
+                .append(Keys.FREE_MEMORY, Runtime.getRuntime().freeMemory())
+                .append(Keys.MAX_MEMORY, Runtime.getRuntime().maxMemory())
+                .append(Keys.CPU_AVAILABLE, Runtime.getRuntime().availableProcessors())
+                .build();
     }
 
     /**
-     * A bundle of Stats that can be used to be saved.
+     * Collect information about a guild to a {@link Bundle}.
+     * @param guild the source guild.
+     * @return a {@link Bundle} containing data about the given guild.
      */
-    public static class Bundle {
+    public static Bundle collectGuild(Guild guild) {
+        return new BundleBuilder()
+                .append(Keys.GUILD_MEMBERS, guild.getMembers().size())
+                .append(Keys.GUILD_MEMBERS_CONNECTED, guild.getMembers().stream().filter(m -> m.getOnlineStatus() != OnlineStatus.OFFLINE).count())
+                .append(Keys.GUILD_EMOTE_COUNT, guild.getEmotes().size())
+                .append(Keys.GUILD_VOICE_CONNECTED, guild.getVoiceStates().stream().filter(GuildVoiceState::inVoiceChannel).count())
+                .build();
+    }
 
-        /**
-         * The amount of milliseconds since the start of the application.
-         */
-        public final long UPTIME;
+    /**
+     * Collect every possible data about the bot to a {@link Bundle}.
+     * This include global stats that are accessible at the root and a bundle
+     * per guild accessible using the key "GUILD_{id}" to get a sub bundle.
+     * @return a {@link Bundle} containing global stats and a sub bundle for each guild.
+     */
+    public static Bundle collectEverything() {
+        final BundleBuilder builder = new BundleBuilder();
+        builder.merge(collectGlobal());
+        ModularBot.instance().dispatchCommand(s -> s.getGuilds().forEach(g -> builder.append("GUILD_" + g.getIdLong(), collectGuild(g))));
 
-        /**
-         * The amount of command that have been executed or that have crashed.
-         */
-        public final int COMMAND_EXECUTED;
-
-        /**
-         * The total amount of jda event received.
-         */
-        public final int JDA_EVENT;
-
-        /**
-         * The total amount of guild across all guilds.
-         */
-        public final int TOTAL_GUILD;
-
-        /**
-         * The total amount of unique users of each shard.
-         * If an user is in 2 guild which are in 2 different shards, he will be counted twice.
-         */
-        public final int TOTAL_USERS;
-
-        /**
-         * The amount of threads of the application.
-         */
-        public final int THREADS;
-
-        /**
-         * The amount of shards.
-         */
-        public final int SHARD_COUNT;
-
-        /**
-         * The amount of open audio connections in all guilds.
-         */
-        public final int AUDIO_CONNECTION;
-
-        /**
-         * The amount of memory that is currently used by the JVM.
-         */
-        public final long MEMORY_USED;
-
-        /**
-         * The total amount of memory that can be used.
-         */
-        public final long MEMORY_TOTAL;
-
-        /**
-         * The amount of processors available.
-         */
-        public final int CPU_AVAILABLE;
-
-        /**
-         * Used to create a bundle.
-         */
-        private Bundle(int cmd, int jda, Integer guild, Integer users, int threads, int shard, int audio, long memTotal, long memUsed, int procs) {
-            UPTIME = System.currentTimeMillis() - start;
-            COMMAND_EXECUTED = cmd;
-            JDA_EVENT = jda;
-            TOTAL_GUILD = guild;
-            TOTAL_USERS = users;
-            THREADS = threads;
-            SHARD_COUNT = shard;
-            AUDIO_CONNECTION = audio;
-            MEMORY_USED = memUsed;
-            MEMORY_TOTAL = memTotal;
-            CPU_AVAILABLE = procs;
-        }
+        return builder.build();
     }
 }

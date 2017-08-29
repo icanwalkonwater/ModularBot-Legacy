@@ -5,7 +5,6 @@ import net.dv8tion.jda.core.events.Event;
 import net.dv8tion.jda.core.hooks.EventListener;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
 public class WaiterListener<T extends Event> extends CompletableFuture<T> implements EventListener {
@@ -46,10 +45,5 @@ public class WaiterListener<T extends Event> extends CompletableFuture<T> implem
 
     private void unregister() {
         shard.removeEventListener(this);
-    }
-
-    @Override
-    public T get() throws InterruptedException, ExecutionException {
-        return super.get();
     }
 }

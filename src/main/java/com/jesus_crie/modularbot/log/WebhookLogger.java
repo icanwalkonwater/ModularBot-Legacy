@@ -6,7 +6,7 @@ import com.jesus_crie.modularbot.utils.Webhooks;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Webhook;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 
 import static com.jesus_crie.modularbot.utils.F.f;
@@ -26,7 +26,7 @@ public class WebhookLogger implements LogListener {
 
     @Override
     public void onLog(Log log) {
-        String message = message = log.MESSAGE;
+        String message = log.MESSAGE;
         if (message.length() > 1500)
             message = message.substring(0, 1495) + "\n...";
 
