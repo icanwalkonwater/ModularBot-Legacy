@@ -23,31 +23,34 @@ public class ModularDialog extends CompletableFuture<Boolean> {
                   final boolean deleteAfter) {
         try {
             message.addReaction(unicodeAccept).complete();
+        } catch (Exception ignore) {} // Many try catch because private channels and permissions...
+        try {
             message.addReaction(unicodeDeny).complete();
+        } catch (Exception ignore) {}
 
-            final MessageReactionAddEvent event = Waiter.getNextEvent(shard, MessageReactionAddEvent.class,
+        MessageReactionAddEvent event = null;
+        try {
+            event = Waiter.getNextEvent(shard, MessageReactionAddEvent.class,
                     e -> e.getMessageIdLong() == message.getIdLong()
                             && e.getUser().getIdLong() == author.getIdLong()
                             && (e.getReactionEmote().getName().equals(unicodeAccept)
                             || e.getReactionEmote().getName().equals(unicodeDeny)), timeout);
+        } catch (Exception ignore) {}
 
+        try {
             if (deleteAfter)
                 message.delete().queue();
             else
                 message.clearReactions().queue();
-
-            if (event != null)
-                if (event.getReactionEmote().getName().equals(unicodeAccept))
-                    complete(true);
-                else
-                    complete(false);
-            else
-                complete(null);
         } catch (Exception ignore) {}
-    }
 
-    private void perform() {
-
+        if (event != null)
+            if (event.getReactionEmote().getName().equals(unicodeAccept))
+                complete(true);
+            else
+                complete(false);
+        else
+            complete(null);
     }
 
     /**
@@ -58,7 +61,7 @@ public class ModularDialog extends CompletableFuture<Boolean> {
     public Boolean get() {
         try {
             return super.get();
-        } catch (Exception e) {
+        } catch (Exception e) { // Can happen if the bot is shutting down at the wrong moment.
             return null;
         }
     }

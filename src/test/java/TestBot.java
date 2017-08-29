@@ -12,7 +12,7 @@ import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.List;
 
@@ -80,12 +80,16 @@ public class TestBot {
         private void yo(CommandEvent event) {
             Message targetMessage = event.getChannel().sendMessage(Templates.SIMPLE_DIALOG.format("Vous confirmez jean-pierre ?").build()).complete();
 
-            Boolean result = new DialogBuilder()
+            DialogBuilder dialog = new DialogBuilder()
                     .targetUser(event.getAuthor())
-                    .deleteAfterTrigger()
-                    .useTimeout(10000)
-                    .bindAndRetrieve(targetMessage);
+                    .useCustomEmote("\uD83E\uDD54", "\uD83C\uDF35")
+                    .useTimeout(10000);
+            Boolean result = dialog.bindAndRetrieve(targetMessage);
             event.fastReply(result == null ? "timeout" : result.toString());
+
+            targetMessage = event.getAuthor().openPrivateChannel().complete().sendMessage(Templates.SIMPLE_DIALOG.format("Vous confirmez jean-pierre ?").build()).complete();
+            result = dialog.bindAndRetrieve(targetMessage);
+            event.fastReply(result == null ? "timeout": result.toString());
         }
 
         private void hi(CommandEvent event, List<Object> args) {
