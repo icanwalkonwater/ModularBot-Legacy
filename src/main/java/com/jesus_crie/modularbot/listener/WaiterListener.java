@@ -43,7 +43,7 @@ public class WaiterListener<T extends Event> extends CompletableFuture<T> implem
         return super.cancel(mayInterruptIfRunning);
     }
 
-    private void unregister() {
+    public void unregister() {
         shard.removeEventListener(this);
     }
 }

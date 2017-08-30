@@ -11,9 +11,9 @@ import com.jesus_crie.modularbot.stats.bundle.Keys;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
-import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
+import com.jesus_crie.modularbot.utils.notification.ModularNotification;
+import com.jesus_crie.modularbot.utils.notification.NotificationBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
-import net.dv8tion.jda.core.entities.Message;
 
 import java.awt.Color;
 import java.lang.reflect.Field;
@@ -96,18 +96,14 @@ public class TestBot {
         }
 
         private void yo(CommandEvent event) {
-            Message targetMessage = event.getChannel().sendMessage(Templates.SIMPLE_DIALOG.format("Vous confirmez jean-pierre ?").build()).complete();
+            ModularNotification notification = new NotificationBuilder(event.getChannel())
+                    .dismissible()
+                    .autoDismiss()
+                    .singleTarget(event.getAuthor())
+                    .useTimeout(5000)
+                    .build();
 
-            DialogBuilder dialog = new DialogBuilder()
-                    .targetUser(event.getAuthor())
-                    .useCustomEmote("\uD83E\uDD54", "\uD83C\uDF35")
-                    .useTimeout(10000);
-            Boolean result = dialog.bindAndRetrieve(targetMessage);
-            event.fastReply(result == null ? "timeout" : result.toString());
-
-            targetMessage = event.getAuthor().openPrivateChannel().complete().sendMessage(Templates.SIMPLE_DIALOG.format("Vous confirmez jean-pierre ?").build()).complete();
-            result = dialog.bindAndRetrieve(targetMessage);
-            event.fastReply(result == null ? "timeout": result.toString());
+            notification.send(Templates.GLOBAL.format("Imma notification !").build());
         }
 
         private void hi(CommandEvent event, List<Object> args) {

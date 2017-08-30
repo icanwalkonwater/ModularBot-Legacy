@@ -60,9 +60,10 @@ public class Waiter {
 
         try {
             return future.get();
-        } catch (CancellationException e) {
+        } catch (CancellationException | InterruptedException e) {
             return null;
         } catch (Exception e) {
+            future.unregister();
             ModularBot.logger().error("Waiter", e);
             return null;
         }

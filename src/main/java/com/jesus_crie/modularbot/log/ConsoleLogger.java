@@ -10,6 +10,8 @@ public class ConsoleLogger implements LogListener {
      */
     @Override
     public void onLog(Log log) {
+        if (log.LEVEL == LogLevel.IGNORE)
+            return;
         System.out.println(log.toString());
     }
 
