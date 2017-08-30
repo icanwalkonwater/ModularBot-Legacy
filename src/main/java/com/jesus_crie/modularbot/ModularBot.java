@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot;
 
 import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.listener.ModularCommandListener;
+import com.jesus_crie.modularbot.log.JDALogger;
 import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.manager.CommandManager;
 import com.jesus_crie.modularbot.manager.ModularEventManager;
@@ -16,6 +17,7 @@ import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.utils.Checks;
+import net.dv8tion.jda.core.utils.SimpleLog;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -88,6 +90,8 @@ public class ModularBot {
         instance = this;
         shards = new ArrayList<>();
         ModularBot.logger = logger;
+        SimpleLog.LEVEL = SimpleLog.Level.OFF;
+        SimpleLog.addListener(new JDALogger());
         logger.info("Start", "LogHandler initialized !");
 
         this.token = token;

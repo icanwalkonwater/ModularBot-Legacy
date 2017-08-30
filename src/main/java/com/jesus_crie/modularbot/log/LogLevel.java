@@ -1,9 +1,11 @@
 package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
+import net.dv8tion.jda.core.utils.SimpleLog;
 
 public enum LogLevel {
 
+    IGNORE(-99, false),
     DEBUG(-1, false),
     INFO(0, false),
     WARNING(1, false),
@@ -43,5 +45,18 @@ public enum LogLevel {
     @Override
     public String toString() {
         return MiscUtils.capitalize(name());
+    }
+
+    static LogLevel fromJDALevel(SimpleLog.Level level) {
+        switch (level.getPriority()) {
+            default:
+                return IGNORE;
+            case 3:
+                return INFO;
+            case 4:
+                return WARNING;
+            case 5:
+                return FATAL;
+        }
     }
 }

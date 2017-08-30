@@ -26,6 +26,9 @@ public class WebhookLogger implements LogListener {
 
     @Override
     public void onLog(Log log) {
+        if (log.LEVEL == LogLevel.IGNORE)
+            return;
+
         String message = log.MESSAGE;
         if (message.length() > 1500)
             message = message.substring(0, 1495) + "\n...";

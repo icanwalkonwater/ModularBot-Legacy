@@ -1,7 +1,6 @@
 package com.jesus_crie.modularbot.utils.dialog;
 
 import com.jesus_crie.modularbot.sharding.ModularShard;
-import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.Checks;
@@ -16,7 +15,6 @@ public class DialogBuilder {
 
     protected User userTarget;
     private String[] emotes;
-    private Emote[] emoteGuild;
     private boolean deleteAfter = false;
     private long timeout = 0;
 
