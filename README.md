@@ -1,6 +1,6 @@
 [![Download](https://api.bintray.com/packages/spacecookies/generic/modularbot/images/download.svg)](https://bintray.com/spacecookies/generic/modularbot/_latestVersion)
-[![JDA Version](https://img.shields.io/badge/JDA-3.2.0__242-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
-[![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.42-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
+[![JDA Version](https://img.shields.io/badge/JDA-3.2.0__254-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
+[![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.43-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
 
 # ModularBot framework
 ModularBot is a java framework designed to help you creating a discord bot using Java without the boring parts.
