@@ -10,6 +10,7 @@ import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.IEventManager;
 import net.dv8tion.jda.core.managers.impl.PresenceImpl;
+import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
@@ -172,6 +173,15 @@ public class ModularJDABuilder extends JDABuilder {
     }
 
     /**
+     * @see JDABuilder#setReconnectQueue(SessionReconnectQueue)
+     */
+    @Override
+    public ModularJDABuilder setReconnectQueue(SessionReconnectQueue queue) {
+        super.setReconnectQueue(queue);
+        return this;
+    }
+
+    /**
      * @see JDABuilder#useSharding(int, int)
      */
     @Override
@@ -203,7 +213,7 @@ public class ModularJDABuilder extends JDABuilder {
                 .setCacheGame(game)
                 .setCacheIdle(idle)
                 .setCacheStatus(status);
-        shard.login(token, shardInfo);
+        shard.login(token, shardInfo, reconnectQueue);
         return shard;
     }
 

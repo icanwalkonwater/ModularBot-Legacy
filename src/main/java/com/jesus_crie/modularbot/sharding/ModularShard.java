@@ -3,14 +3,14 @@ package com.jesus_crie.modularbot.sharding;
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.listener.CommandListener;
+import com.jesus_crie.modularbot.listener.ReadyListener;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
-import net.dv8tion.jda.core.events.ReadyEvent;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import net.dv8tion.jda.core.utils.Checks;
 import okhttp3.OkHttpClient;
 
@@ -39,21 +39,20 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     }
 
     /**
-     * @see JDAImpl#login(String, ShardInfo)
+     * @see JDAImpl#login(String, ShardInfo, SessionReconnectQueue)
      */
     @Override
-    public void login(String token, ShardInfo shardInfo) throws LoginException, RateLimitedException {
+    public void login(String token, ShardInfo shardInfo, SessionReconnectQueue reconnectQueue) throws LoginException, RateLimitedException {
         // Ready listener
-        final EventListener readyListener = event -> {
-            if (event instanceof ReadyEvent) {
-                ModularBot.logger().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
-                isReady = true;
-                removeEventListener(this);
-            }
-        };
-        addEventListener(readyListener);
+        ReadyListener listener = new ReadyListener();
+        addEventListener(listener);
 
-        super.login(token, shardInfo);
+        super.login(token, shardInfo, reconnectQueue);
+        listener.get();
+        ModularBot.logger().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
+        isReady = true;
+        removeEventListener(listener);
+
         pool.setThreadFactory(new ModularThreadFactory(this, "Main", true));
         commandPool.setThreadFactory(new ModularThreadFactory(this, "Command", true));
 

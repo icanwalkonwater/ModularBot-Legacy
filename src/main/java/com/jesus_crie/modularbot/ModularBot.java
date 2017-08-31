@@ -48,6 +48,7 @@ public class ModularBot {
     private static LogHandler logger;
     private static boolean isReady = false;
     private static boolean useAudio;
+    private static ModularJDABuilder builderCache = null;
 
     private final String token;
     private int maxShard;
@@ -141,20 +142,17 @@ public class ModularBot {
         }
 
         shards.clear();
-        maxShard = getShardMax(false);
+        maxShard = getShardMax(true);
         logger.info("Start", f("Creation of %s shards is required.", maxShard));
+
+        initShardBuilder();
 
         for (int i = 0; i < maxShard; i++) {
             logger.info("Start", f("Starting shard %s of %s...", i + 1, maxShard));
-            shards.add(new ModularJDABuilder(AccountType.BOT)
-                    .setToken(token)
-                    .useSharding(i, maxShard)
-                    .setAutoReconnect(true)
-                    .setAudioEnabled(useAudio)
-                    .setEventManager(new ModularEventManager())
-                    .setIdle(false)
-                    .setGame(Status.STARTING)
-                    .buildBlocking());
+            shards.add(builderCache.useSharding(i, maxShard).buildAsync());
+            try {
+                Thread.sleep(5000);
+            } catch (Exception ignore) {}
         }
 
         shards.sort(ModularShard::compareTo);
@@ -175,17 +173,24 @@ public class ModularBot {
         logger.info("Start", f("Restarting shard %s of %s", shardId, maxShard));
         shards.get(shardId).shutdownNow();
 
-        shards.set(shardId, new ModularJDABuilder(AccountType.BOT)
-                .setToken(token)
-                .useSharding(shardId, maxShard)
-                .setAutoReconnect(true)
-                .setAudioEnabled(useAudio)
-                .setEventManager(new ModularEventManager())
-                .setIdle(false)
-                .setGame(Status.STARTING)
-                .buildBlocking());
+        shards.set(shardId, builderCache.useSharding(shardId, maxShard).buildBlocking());
 
         shards.sort(ModularShard::compareTo);
+    }
+
+    /**
+     * Create an instance of {@link ModularJDABuilder} if not existing.
+     */
+    protected void initShardBuilder() {
+        if (builderCache == null) {
+            builderCache = new ModularJDABuilder(AccountType.BOT)
+                    .setToken(token)
+                    .setAutoReconnect(true)
+                    .setAudioEnabled(useAudio)
+                    .setEventManager(new ModularEventManager())
+                    .setIdle(false)
+                    .setGame(Status.STARTING);
+        }
     }
 
     /**
