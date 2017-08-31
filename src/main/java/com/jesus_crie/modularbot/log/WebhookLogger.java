@@ -1,10 +1,12 @@
 package com.jesus_crie.modularbot.log;
 
+import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.utils.Icons;
-import com.jesus_crie.modularbot.utils.Webhooks;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Webhook;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookMessageBuilder;
 
 import java.awt.Color;
 import java.time.Instant;
@@ -18,10 +20,10 @@ public class WebhookLogger implements LogListener {
             .setDescription("{1}")
             .setFooter("{2}", null)
             .build());
-    private final Webhook hook;
+    private final WebhookClient hook;
 
     public WebhookLogger(Webhook webhook) {
-        hook = webhook;
+        hook = ((ModularShard) webhook.getJDA()).createWebHookClient(webhook);
     }
 
     @Override
@@ -36,7 +38,12 @@ public class WebhookLogger implements LogListener {
         EmbedBuilder builder = template.format(log.PREFIX, log.CONTENT == null ? message : f("%s: %s", message, log.CONTENT), log.THREAD_NAME)
                 .setColor(Color.GREEN)
                 .setTimestamp(Instant.now());
-        Webhooks.execute(hook, log.LEVEL.toString(), Icons.CHECK, builder.build()).complete();
+;
+        hook.send(new WebhookMessageBuilder()
+                .setUsername(log.LEVEL.toString())
+                .setAvatarUrl(Icons.CHECK)
+                .addEmbeds(builder.build())
+                .build());
     }
 
     @Override
@@ -48,6 +55,11 @@ public class WebhookLogger implements LogListener {
         EmbedBuilder builder = template.format(log.PREFIX, log.CONTENT == null ? message : f("%s: %s", message, log.CONTENT), log.THREAD_NAME)
                 .setColor(Color.RED)
                 .setTimestamp(Instant.now());
-        Webhooks.execute(hook, log.LEVEL.toString(), Icons.ERROR, builder.build()).complete();
+
+        hook.send(new WebhookMessageBuilder()
+                .setUsername(log.LEVEL.toString())
+                .setAvatarUrl(Icons.ERROR)
+                .addEmbeds(builder.build())
+                .build());
     }
 }

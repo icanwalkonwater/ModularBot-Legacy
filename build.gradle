@@ -6,7 +6,7 @@ apply plugin: 'java'
 apply plugin: 'maven-publish'
 
 group 'com.jesus_crie'
-version '1.1.1'
+version '1.1.2'
 
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compile 'net.dv8tion:JDA:3.2.0_251'
+    compile 'net.dv8tion:JDA:3.2.0_254'
     compile 'com.sedmelluq:lavaplayer:1.2.43'
     compile 'org.slf4j:slf4j-nop:1.7.21'
 }

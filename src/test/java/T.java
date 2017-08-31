@@ -1,22 +1,7 @@
-import org.apache.commons.collections4.map.UnmodifiableMap;
-
-import java.util.HashMap;
-import java.util.Map;
-
 public class T {
 
     public static void main(String[] args) {
-        HashMap<Integer, Integer> map = new HashMap<>();
-        for (int i = 0; i < 20; i++) {
-            map.put(i, 42);
-        }
 
-        HashMap<Integer, Integer> map1 = new HashMap<>();
-        map1.putAll(map);
-
-        Map<Integer, Integer> unmodifiable = UnmodifiableMap.unmodifiableMap(map1);
-
-        unmodifiable.forEach((k, v) -> print(k + ": " + v));
     }
 
     public static void test() throws RuntimeException {

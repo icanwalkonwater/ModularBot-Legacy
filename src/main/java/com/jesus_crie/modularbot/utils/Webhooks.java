@@ -14,6 +14,7 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 
+@Deprecated
 public class Webhooks {
 
     /**

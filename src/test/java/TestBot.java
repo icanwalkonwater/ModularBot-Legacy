@@ -5,6 +5,7 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
+import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.stats.Stats;
 import com.jesus_crie.modularbot.stats.bundle.Bundle;
 import com.jesus_crie.modularbot.stats.bundle.Keys;
@@ -36,15 +37,14 @@ public class TestBot {
                 new CommandStop()
         );
         ModularBot.getCommandManager().registerQuickCommand("ping", e -> e.fastReply("Pong !"));
-        ModularBot.getCommandManager().registerCommands(
-                new QuickCommand("ping", AccessLevel.EVERYONE, e -> e.fastReply("Pong !"))
-        );
 
         try {
             bot.connectToDiscord();
         } catch (Exception e) {
             ModularBot.logger().error("App", e);
         }
+
+        ModularBot.logger().registerListener(new WebhookLogger(bot.getDMShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
     }
 
     public static class CommandTest extends Command {
