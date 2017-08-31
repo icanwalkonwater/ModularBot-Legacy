@@ -142,7 +142,7 @@ public class ModularBot {
         }
 
         shards.clear();
-        maxShard = getShardMax(true);
+        maxShard = getShardMax(false);
         logger.info("Start", f("Creation of %s shards is required.", maxShard));
 
         initShardBuilder();

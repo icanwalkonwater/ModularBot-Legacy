@@ -8,10 +8,12 @@ import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.entities.Webhook;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import net.dv8tion.jda.core.utils.Checks;
+import net.dv8tion.jda.webhook.WebhookClient;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
@@ -85,6 +87,12 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
                 .filter(u -> u.getDiscriminator().equals(discriminator))
                 .findAny()
                 .orElse(null);
+    }
+
+    public WebhookClient createWebHookClient(Webhook webhook) {
+        return webhook.newClient()
+                .setExecutorService(pool)
+                .build();
     }
 
     /**
