@@ -151,7 +151,8 @@ public class ModularBot {
             logger.info("Start", f("Starting shard %s of %s...", i + 1, maxShard));
             shards.add(builderCache.useSharding(i, maxShard).buildAsync());
             try {
-                Thread.sleep(5000);
+                if (i != maxShard - 1)
+                    Thread.sleep(5000);
             } catch (Exception ignore) {}
         }
 

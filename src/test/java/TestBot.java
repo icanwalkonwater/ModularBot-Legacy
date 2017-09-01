@@ -12,8 +12,6 @@ import com.jesus_crie.modularbot.stats.bundle.Keys;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
-import com.jesus_crie.modularbot.utils.notification.ModularNotification;
-import com.jesus_crie.modularbot.utils.notification.NotificationBuilder;
 import net.dv8tion.jda.core.EmbedBuilder;
 
 import java.awt.Color;
@@ -96,14 +94,10 @@ public class TestBot {
         }
 
         private void yo(CommandEvent event) {
-            ModularNotification notification = new NotificationBuilder(event.getChannel())
-                    .dismissible()
-                    .autoDismiss()
-                    .singleTarget(event.getAuthor())
-                    .useTimeout(5000)
-                    .build();
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.addField("\u0031\u20E3 Choice 1", "Hey", true);
 
-            notification.send(Templates.GLOBAL.format("Imma notification !").build());
+            event.getChannel().sendMessage(builder.build()).queue();
         }
 
         private void hi(CommandEvent event, List<Object> args) {
