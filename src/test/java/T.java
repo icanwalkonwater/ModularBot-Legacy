@@ -1,7 +1,12 @@
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class T {
 
     public static void main(String[] args) {
-
+        ObjectMapper mapper = new ObjectMapper();
+        JsonNode node;
+        //node.get("boolField").asBoolean();
     }
 
     public static void test() throws RuntimeException {

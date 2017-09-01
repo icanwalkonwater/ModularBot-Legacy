@@ -38,12 +38,13 @@ public class WebhookLogger implements LogListener {
         EmbedBuilder builder = template.format(log.PREFIX, log.CONTENT == null ? message : f("%s: %s", message, log.CONTENT), log.THREAD_NAME)
                 .setColor(Color.GREEN)
                 .setTimestamp(Instant.now());
-;
-        hook.send(new WebhookMessageBuilder()
-                .setUsername(log.LEVEL.toString())
-                .setAvatarUrl(Icons.CHECK)
-                .addEmbeds(builder.build())
-                .build());
+        try {
+            hook.send(new WebhookMessageBuilder()
+                    .setUsername(log.LEVEL.toString())
+                    .setAvatarUrl(Icons.CHECK)
+                    .addEmbeds(builder.build())
+                    .build()).get();
+        } catch (Exception ignore) {}
     }
 
     @Override
@@ -56,10 +57,12 @@ public class WebhookLogger implements LogListener {
                 .setColor(Color.RED)
                 .setTimestamp(Instant.now());
 
-        hook.send(new WebhookMessageBuilder()
-                .setUsername(log.LEVEL.toString())
-                .setAvatarUrl(Icons.ERROR)
-                .addEmbeds(builder.build())
-                .build());
+        try {
+            hook.send(new WebhookMessageBuilder()
+                    .setUsername(log.LEVEL.toString())
+                    .setAvatarUrl(Icons.ERROR)
+                    .addEmbeds(builder.build())
+                    .build()).get();
+        } catch (Exception ignore) {}
     }
 }
