@@ -52,17 +52,4 @@ public class ModularDialog extends CompletableFuture<Boolean> {
         else
             complete(null);
     }
-
-    /**
-     * Get the result of the dialog in a blocking way, without handling the exception.
-     * @return true if the user has responded yes, false if the user has responded no, null in case of timeout or when an exception is throw.
-     */
-    @Override
-    public Boolean get() {
-        try {
-            return super.get();
-        } catch (Exception e) { // Can happen if the bot is shutting down at the wrong moment.
-            return null;
-        }
-    }
 }

@@ -1,5 +1,5 @@
 [![Download](https://api.bintray.com/packages/spacecookies/generic/modularbot/images/download.svg)](https://bintray.com/spacecookies/generic/modularbot/_latestVersion)
-[![JDA Version](https://img.shields.io/badge/JDA-3.2.0__254-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
+[![JDA Version](https://img.shields.io/badge/JDA-3.3.0__261-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
 [![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.43-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
 
 # ModularBot framework

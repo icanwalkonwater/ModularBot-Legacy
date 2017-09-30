@@ -5,6 +5,8 @@ import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.Checks;
 
+import java.util.concurrent.ExecutionException;
+
 /**
  * Used to easily manipulate a {@link ModularDialog}.
  */
@@ -78,7 +80,7 @@ public class DialogBuilder {
      * @param message the message to bind.
      * @return the possibly-null result of the {@link ModularDialog}.
      */
-    public Boolean bindAndRetrieve(Message message) {
+    public Boolean bindAndRetrieve(Message message) throws ExecutionException, InterruptedException {
         return bind(message).get();
     }
 
@@ -89,7 +91,11 @@ public class DialogBuilder {
      * @return true if the user has clicked yes, false if he had clicked no, otherwise return {@code defaultValue}.
      */
     public boolean bindAndRetrieveOrDefault(Message message, boolean defaultValue) {
-        Boolean result = bindAndRetrieve(message);
-        return result == Boolean.TRUE || result != Boolean.FALSE && defaultValue;
+        try {
+            Boolean result = bindAndRetrieve(message);
+            return result == Boolean.TRUE || result != Boolean.FALSE && defaultValue;
+        } catch (Exception e) {
+            return defaultValue;
+        }
     }
 }
