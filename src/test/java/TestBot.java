@@ -6,19 +6,19 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.log.WebhookLogger;
-import com.jesus_crie.modularbot.stats.Stats;
-import com.jesus_crie.modularbot.stats.bundle.Bundle;
-import com.jesus_crie.modularbot.stats.bundle.Keys;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
+import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
+import com.jesus_crie.modularbot.utils.menu.MenuBuilder;
+import com.jesus_crie.modularbot.utils.menu.ModularMenu;
 import net.dv8tion.jda.core.EmbedBuilder;
+import net.dv8tion.jda.core.entities.Message;
 
 import java.awt.Color;
-import java.lang.reflect.Field;
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
@@ -42,7 +42,7 @@ public class TestBot {
             ModularBot.logger().error("App", e);
         }
 
-        ModularBot.logger().registerListener(new WebhookLogger(bot.getDMShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
+        ModularBot.logger().registerListener(new WebhookLogger(bot.getFirstShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
     }
 
     public static class CommandTest extends Command {
@@ -67,37 +67,33 @@ public class TestBot {
         }
 
         private void test(CommandEvent event) {
-            HashMap<Integer, String> translate = new HashMap<>();
-            for (Field field : Keys.class.getDeclaredFields()) {
-                translate.put(field.getName().hashCode(), field.getName());
+            try {
+                new DialogBuilder()
+                        .targetUser(event.getAuthor())
+                        .useTimeout(5000)
+                        .useCustomEmote("\u0031\u20E3", "347030180113547285")
+                        .bind(event.fastReply("Hey")).get();
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-
-            Bundle full = Stats.collectEverything();
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.setColor(Color.WHITE);
-            builder.setTitle("Full dump");
-            full.getRaw().forEach((key, val) -> {
-                if (!(val instanceof Bundle))
-                    builder.addField(translate.getOrDefault(key, "Probably a command"), String.valueOf(val), true);
-                else {
-                    event.getJDA().getGuilds().forEach(g -> {
-                        Bundle guildBundle = full.getSubBundle("GUILD_" + g.getIdLong());
-                        StringBuilder content = new StringBuilder();
-                        guildBundle.getRaw().forEach((k, v) -> content.append(translate.get(k) + ": " + v + "\n"));
-                        builder.addField("GUILD_" + g.getIdLong(), content.toString(), false);
-
-                    });
-                }
-            });
-
-            event.getChannel().sendMessage(builder.build()).queue();
         }
 
         private void yo(CommandEvent event) {
             EmbedBuilder builder = new EmbedBuilder();
             builder.addField("\u0031\u20E3 Choice 1", "Hey", true);
 
-            event.getChannel().sendMessage(builder.build()).queue();
+            Message target = event.getChannel().sendMessage(builder.build()).complete();
+            ModularMenu menu = new MenuBuilder(target)
+                    .targetUser(event.getAuthor())
+                    .useTimeout(5000)
+                    .deleteAfter()
+                    .build()
+                    .addButtonWithListener("bite", e -> event.fastReply("Choice 1 triggered !"));
+
+            menu.run();
+            ModularBot.logger().info("App", "Menu running");
+            menu.get();
+            ModularBot.logger().info("App", "Menu completed");
         }
 
         private void hi(CommandEvent event, List<Object> args) {

@@ -13,7 +13,9 @@ import com.jesus_crie.modularbot.utils.MiscUtils;
 import com.jesus_crie.modularbot.utils.Status;
 import net.dv8tion.jda.core.AccountType;
 import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Game;
+import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.utils.Checks;
@@ -133,7 +135,7 @@ public class ModularBot {
      * @throws InterruptedException if something interrupt a login request.
      * @throws RateLimitedException if we are rate-limited.
      */
-    public void restartShards() throws LoginException, InterruptedException, RateLimitedException {
+    public void restartShards() throws LoginException, RateLimitedException {
         if (!shards.isEmpty()) {
             shards.forEach(s -> {
                 s.getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Status.STOPPING);
@@ -287,7 +289,7 @@ public class ModularBot {
      * Get the shard that will receive private messages.
      * @return the shard 0.
      */
-    public ModularShard getDMShard() {
+    public ModularShard getFirstShard() {
         return shards.get(0);
     }
 
@@ -339,6 +341,45 @@ public class ModularBot {
     }
 
     /**
+     * Search for an emote across the shards.
+     * @param id the id of the emote.
+     * @return the emote if it exist otherwise null.
+     */
+    public Emote getEmoteById(String id) {
+        try {
+            return getEmoteById(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public Emote getEmoteById(long id) {
+        return collectShardInfos(s -> s.getGuilds().stream()
+                    .map(g -> g.getEmoteById(id))
+                    .findFirst()
+                    .orElse(null)).stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    /**
+     * Get a guild by its id across the shards.
+     * @param id the id of the guild.
+     * @return the guild or null if it doesn't exist.
+     */
+    public Guild getGuildById(String id) {
+        try {
+            return getGuildById(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    public Guild getGuildById(long id) {
+        return getShardForGuildId(id).getGuildById(id);
+    }
+
+    /**
      * Query the recommended amount of shards from the discord API.
      * @return the recommended amount of shards.
      */
@@ -361,7 +402,7 @@ public class ModularBot {
 
             return j.getInt("shards");
         } catch (Exception e) {
-            logger.fatal("Start", e.getClass().getSimpleName() + " while getting the recommended amount of shards ! Using 1 shard.");
+            logger.warning("Start", e.getClass().getSimpleName() + " while getting the recommended amount of shards ! Using 1 shard.");
             if (e.getMessage() != null)
                 logger.fatal("Start", e.getMessage());
             return 1;

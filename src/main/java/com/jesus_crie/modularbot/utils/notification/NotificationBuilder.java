@@ -10,7 +10,7 @@ public class NotificationBuilder {
 
     private String customDismiss;
     private User specifyTarget;
-    private MessageChannel channel;
+    private final MessageChannel channel;
     private boolean dismissible = false;
     private boolean autoDismiss = false;
     private long timeout = 0;
