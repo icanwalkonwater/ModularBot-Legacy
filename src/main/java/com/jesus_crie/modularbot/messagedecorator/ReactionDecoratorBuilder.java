@@ -1,20 +1,27 @@
 package com.jesus_crie.modularbot.messagedecorator;
 
-public class ReactionDecoratorBuilder {
+import com.jesus_crie.modularbot.messagedecorator.dismissable.NotificationDecorator;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.utils.Checks;
 
-    private static final class NotificationBuilder {
+public abstract class ReactionDecoratorBuilder<T extends ReactionDecoratorBuilder, V extends ReactionDecorator> {
 
+    public static NotificationDecorator.NotificationBuilder newNotification(Message bindTo, User target) {
+        Checks.notNull(bindTo, "message");
+        Checks.notNull(target, "target");
+        return new NotificationDecorator.NotificationBuilder(bindTo, target);
     }
 
-    private static final class DialogBuilder {
+    protected final Message bind;
 
+    protected ReactionDecoratorBuilder(Message bind) {
+        Checks.notNull(bind, "message");
+        this.bind = bind;
     }
 
-    private static final class PanelBuilder {
+    protected abstract T useTimeout(long timeout);
+    protected abstract T targetUser(User target);
 
-    }
-
-    private static final class PollBuilder {
-
-    }
+    public abstract V build();
 }

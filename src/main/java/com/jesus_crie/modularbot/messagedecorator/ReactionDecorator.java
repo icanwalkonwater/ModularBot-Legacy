@@ -14,6 +14,7 @@ public abstract class ReactionDecorator {
     protected final Message bindTo;
     protected final User target;
     protected final HashMap<String, ReactionButton> buttons = new HashMap<>();
+    @SuppressWarnings("unchecked")
     protected WaiterListener<MessageReactionAddEvent> listener = WaiterListener.EMPTY;
 
     protected boolean isAlive = true;
