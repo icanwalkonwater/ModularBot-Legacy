@@ -188,6 +188,7 @@ public class Argument<T> implements Cloneable {
      * @return a clone of this object.
      */
     @Override
+    @SuppressWarnings("CloneDoesntDeclareCloneNotSupportedException")
     protected Object clone() {
         try {
             return super.clone();

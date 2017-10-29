@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.utils;
 
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.Checks;
+import net.dv8tion.jda.core.utils.MiscUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -27,6 +28,15 @@ public class MiscUtils {
         Checks.notNull(map, name);
         if (map.size() <= 0)
             throw new IllegalArgumentException(name + " may not be empty");
+    }
+
+    public static void checkEncodableUTF8(String unicode) {
+        Checks.notNull(unicode, "unicode");
+        try {
+            MiscUtil.encodeUTF8(unicode);
+        } catch (Exception e) {
+            throw new IllegalArgumentException(unicode + " is not a valid UTF-8 character");
+        }
     }
 
     public static String collectStackTrace(Throwable e) {

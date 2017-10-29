@@ -1,6 +1,7 @@
 package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
+import org.slf4j.event.Level;
 
 public interface LogHandler {
 
@@ -11,12 +12,12 @@ public interface LogHandler {
      * @param message the reason of this log.
      * @param content (Optional) bonus object that will be stringify.
      */
-    void handle(LogLevel level, String source, String message, Object content);
+    void handle(Level level, String source, String message, Object content);
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String, Object)} with no object.
+     * Overload of {@link LogHandler#handle(Level, String, String, Object)} with no object.
      */
-    default void handle(LogLevel level, String from, String message) {
+    default void handle(Level level, String from, String message) {
         handle(level, from, message, null);
     }
 
@@ -33,44 +34,44 @@ public interface LogHandler {
     void unregisterListener(LogListener... listeners);
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(Level, String, String)}.
      * Log something with the {@link LogLevel#DEBUG} level.
      */
     default void debug(String from, String message) {
-        handle(LogLevel.DEBUG, from, message);
+        handle(Level.DEBUG, from, message);
     }
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(Level, String, String)}.
      * Log something with the {@link LogLevel#INFO} level.
      */
     default void info(String from, String message) {
-        handle(LogLevel.INFO, from, message);
+        handle(Level.INFO, from, message);
     }
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(Level, String, String)}.
      * Log something with the {@link LogLevel#WARNING} level.
      */
     default void warning(String from, String message) {
-        handle(LogLevel.WARNING, from, message);
+        handle(Level.WARN, from, message);
     }
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String)}.
+     * Overload of {@link LogHandler#handle(Level, String, String)}.
      * Log something with the {@link LogLevel#FATAL} level.
      */
     default void fatal(String from, String message) {
-        handle(LogLevel.FATAL, from, message);
+        handle(Level.ERROR, from, message);
     }
 
     /**
-     * Overload of {@link LogHandler#handle(LogLevel, String, String)}
+     * Overload of {@link LogHandler#handle(Level, String, String)}
      * Used to log {@link Exception} and their stack trace.
      * @param from a String representing the source of the log, for example "Command"
      * @param e the exception to log.
      */
     default void error(String from, Throwable e) {
-        handle(LogLevel.ERROR, from, MiscUtils.collectStackTrace(e));
+        handle(Level.ERROR, from, MiscUtils.collectStackTrace(e));
     }
 }

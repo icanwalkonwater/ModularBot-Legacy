@@ -1,10 +1,7 @@
 package com.jesus_crie.modularbot.sharding;
 
 import com.neovisionaries.ws.client.WebSocketFactory;
-import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.JDA;
-import net.dv8tion.jda.core.JDABuilder;
-import net.dv8tion.jda.core.OnlineStatus;
+import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.audio.factory.IAudioSendFactory;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
@@ -182,6 +179,24 @@ public class ModularJDABuilder extends JDABuilder {
     }
 
     /**
+     * @see JDABuilder#setShardedRateLimiter(ShardedRateLimiter)
+     */
+    @Override
+    public ModularJDABuilder setShardedRateLimiter(ShardedRateLimiter rateLimiter) {
+        super.setShardedRateLimiter(rateLimiter);
+        return this;
+    }
+
+    /**
+     * @see JDABuilder#setRequestTimeoutRetry(boolean)
+     */
+    @Override
+    public ModularJDABuilder setRequestTimeoutRetry(boolean retryOnTimeout) {
+        super.setRequestTimeoutRetry(retryOnTimeout);
+        return this;
+    }
+
+    /**
      * @see JDABuilder#useSharding(int, int)
      */
     @Override
@@ -197,7 +212,7 @@ public class ModularJDABuilder extends JDABuilder {
     public ModularShard buildAsync() throws LoginException, IllegalArgumentException, RateLimitedException {
         OkHttpClient.Builder httpClientBuilder = this.httpClientBuilder == null ? new OkHttpClient.Builder() : this.httpClientBuilder;
         WebSocketFactory wsFactory = this.wsFactory == null ? new WebSocketFactory() : this.wsFactory;
-        ModularShard shard = new ModularShard(accountType, httpClientBuilder, wsFactory, autoReconnect, enableVoice, enableShutdownHook,
+        ModularShard shard = new ModularShard(accountType, httpClientBuilder, wsFactory, shardRateLimiter, autoReconnect, enableVoice, enableShutdownHook,
                 enableBulkDeleteSplitting, corePoolSize, maxReconnectDelay);
 
         if (eventManager != null)

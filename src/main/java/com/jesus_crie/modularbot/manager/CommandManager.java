@@ -13,7 +13,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class CommandManager {
+public final class CommandManager {
 
     private final List<Command> discordCommands = new ArrayList<>();
     private final ModularCommandListener handler;

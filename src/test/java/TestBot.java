@@ -6,7 +6,9 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.log.WebhookLogger;
+import com.jesus_crie.modularbot.messagedecorator.dismissable.NotificationDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
+import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
 import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
@@ -32,6 +34,7 @@ public class TestBot {
                 .build();
         ModularBot.getCommandManager().registerCommands(
                 new CommandTest(),
+                new CommandStat(),
                 new CommandStop()
         );
         ModularBot.getCommandManager().registerQuickCommand("ping", e -> e.fastReply("Pong !"));
@@ -61,6 +64,10 @@ public class TestBot {
                     new CommandPattern(new Argument[] {
                             Argument.forString("embed")
                     }, this::hi),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("notif")
+                    }, this::testNotification),
 
                     new CommandPattern(null, this::test)
             );
@@ -120,6 +127,15 @@ public class TestBot {
 
             event.getChannel().sendMessage(response.build()).queue();
         }
+
+        private void testNotification(CommandEvent event) {
+            EmbedBuilder builder = new EmbedBuilder();
+            builder.setTitle("Imma notification !")
+                    .setDescription("Click " + NotificationDecorator.RED_CROSS + " to make me disappear");
+
+            Message notif = event.getChannel().sendMessage(builder.build()).complete();
+            NotificationDecorator decorator = new NotificationDecorator(notif, event.getAuthor(), 10000L);
+        }
     }
 
     public static class CommandStop extends Command {
@@ -136,6 +152,26 @@ public class TestBot {
         private void stop(CommandEvent event) {
             event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...").build()).complete();
             ModularBot.instance().shutdown(false);
+        }
+    }
+
+    public static class CommandStat extends Command {
+
+        private static final MessageTemplate template = new MessageTemplate("Thread in mightyPool: {0}",
+                "Thread in shardPool: {1}",
+                "Decorators: {2}");
+
+        private CommandStat() {
+            super("stat", Contexts.EVERYWHERE, AccessLevel.CREATOR);
+            registerPattern(new CommandPattern(null, this::onCommand));
+        }
+
+        private void onCommand(CommandEvent event) {
+            Message message = template.format(ModularBot.instance().getMightyPool().getPoolSize(),
+                    event.getJDA().pool.getPoolSize(),
+                    ModularBot.getDecoratorManager().size());
+
+            event.getChannel().sendMessage(message).queue();
         }
     }
 

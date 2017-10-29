@@ -4,9 +4,13 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jesus_crie.modularbot.ModularBot;
 import net.dv8tion.jda.core.entities.Guild;
+import org.apache.commons.io.FileUtils;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.concurrent.TimeUnit;
 
@@ -93,12 +97,20 @@ public class SimpleConfig implements ConfigHandler {
     /**
      * Create the config file only if it doesn't exist yet.
      * @throws IOException if something is wrong.
-     * @return true if the file has been successfully created.
-     *      False if the file already exist.
      */
-    @SuppressWarnings("UnusedReturnValue")
-    private boolean checkAndCreateFile() throws IOException {
-        return configFile.createNewFile();
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private void checkAndCreateFile() throws IOException {
+        if (!configFile.exists()) {
+            ModularBot.logger().warning("Config", "No config file, creating one.");
+            FileUtils.write(configFile, "{}", Charset.forName("UTF-8"));
+            return;
+        }
+
+        BufferedReader reader = new BufferedReader(new FileReader(configFile));
+        if (reader.readLine() == null) { // If file empty
+            ModularBot.logger().warning("Config", "Empty config file founded, fixing this...");
+            FileUtils.write(configFile, "{}", Charset.forName("UTF-8"));
+        }
     }
 
     /**
@@ -117,7 +129,6 @@ public class SimpleConfig implements ConfigHandler {
      */
     @Override
     public void save() throws IOException {
-        checkAndCreateFile();
         mapper.writeValue(configFile, settings);
     }
 
