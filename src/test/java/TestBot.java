@@ -13,16 +13,12 @@ import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
-import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
-import com.jesus_crie.modularbot.utils.menu.MenuBuilder;
-import com.jesus_crie.modularbot.utils.menu.ModularMenu;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
 
 import java.awt.*;
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 @SuppressWarnings("WeakerAccess")
 public class TestBot {
@@ -61,10 +57,6 @@ public class TestBot {
 
             registerPatterns(
                     new CommandPattern(new Argument[] {
-                            Argument.forString("yo")
-                    }, this::yo),
-
-                    new CommandPattern(new Argument[] {
                             Argument.forString("embed")
                     }, this::hi),
 
@@ -74,40 +66,8 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.forString("dialog")
-                    }, this::testDialog),
-
-                    new CommandPattern(null, this::test)
+                    }, this::testDialog)
             );
-        }
-
-        private void test(CommandEvent event) {
-            try {
-                new DialogBuilder()
-                        .targetUser(event.getAuthor())
-                        .useTimeout(5000)
-                        .useCustomEmote("\u0031\u20E3", "347030180113547285")
-                        .bind(event.fastReply("Hey")).get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void yo(CommandEvent event) {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.addField("\u0031\u20E3 Choice 1", "Hey", true);
-
-            Message target = event.getChannel().sendMessage(builder.build()).complete();
-            ModularMenu menu = new MenuBuilder(target)
-                    .targetUser(event.getAuthor())
-                    .useTimeout(5000)
-                    .deleteAfter()
-                    .build()
-                    .addButtonWithListener("bite", e -> event.fastReply("Choice 1 triggered !"));
-
-            menu.run();
-            ModularBot.logger().info("App", "Menu running");
-            menu.get();
-            ModularBot.logger().info("App", "Menu completed");
         }
 
         private void hi(CommandEvent event, List<Object> args) {
