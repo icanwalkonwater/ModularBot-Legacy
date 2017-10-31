@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.jesus_crie:modularbot:1.2.0'
+    compile 'com.jesus_crie:modularbot:1.2.1'
 }
 ```
 
