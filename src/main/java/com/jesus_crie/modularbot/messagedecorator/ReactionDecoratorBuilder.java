@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.messagedecorator;
 
+import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
@@ -17,6 +18,18 @@ public abstract class ReactionDecoratorBuilder<T extends ReactionDecoratorBuilde
         Checks.notNull(bindTo, "message");
         Checks.notNull(target, "target");
         return new NotificationDecorator.NotificationBuilder(bindTo, target);
+    }
+
+    /**
+     * Initialize a new builder to create a {@link DialogDecorator}.
+     * @param bindTo the targeted message.
+     * @param target the targeted user.
+     * @return a new {@link com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator.DialogBuilder}.
+     */
+    public static DialogDecorator.DialogBuilder newDialogBox(Message bindTo, User target) {
+        Checks.notNull(bindTo, "message");
+        Checks.notNull(target, "target");
+        return new DialogDecorator.DialogBuilder(bindTo, target);
     }
 
     // Builder stuff.

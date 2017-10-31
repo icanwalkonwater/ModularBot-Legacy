@@ -12,13 +12,10 @@ import net.dv8tion.jda.core.utils.Checks;
 public class NotificationDecorator extends DismissibleDecorator {
 
     /**
-     * The unicode string for "❌".
-     */
-    public static final String RED_CROSS = "\u274C";
-    /**
      * The {@link ReactionButton} used to dismiss a notification.
+     * The emote used is "❌"
      */
-    private static final ReactionButton DISMISS_BUTTON = new ReactionButton(RED_CROSS, (event, decorator) -> ((DismissibleDecorator) decorator).onDismiss());
+    private static final ReactionButton DISMISS_BUTTON = new ReactionButton("\u274C", (event, decorator) -> ((DismissibleDecorator) decorator).onDismiss());
 
     /**
      * Main constructor.
@@ -62,7 +59,7 @@ public class NotificationDecorator extends DismissibleDecorator {
         /**
          * Used to add a timeout to the notification.
          * When the timeout is reached, the notification is no longer interactive.
-         * By default, the timeout is infinite.
+         * By default, the timeout is infinite (0).
          * @param timeout the timeout in milliseconds.
          * @return the current builder.
          */

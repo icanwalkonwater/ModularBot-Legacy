@@ -7,6 +7,7 @@ import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
+import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.MessageTemplate;
@@ -71,6 +72,10 @@ public class TestBot {
                             Argument.forString("notif")
                     }, this::testNotification),
 
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("dialog")
+                    }, this::testDialog),
+
                     new CommandPattern(null, this::test)
             );
         }
@@ -131,14 +136,26 @@ public class TestBot {
         }
 
         private void testNotification(CommandEvent event) {
-            EmbedBuilder builder = new EmbedBuilder();
-            builder.setTitle("Imma notification !")
-                    .setDescription("Click " + NotificationDecorator.RED_CROSS + " to make me disappear");
+            EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("Imma notification !")
+                    .setDescription("Click the cross to make me disappear");
 
             Message notif = event.getChannel().sendMessage(builder.build()).complete();
             NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification(notif, event.getAuthor())
                     .useTimeout(10000L)
                     .build();
+        }
+
+        private void testDialog(CommandEvent event) {
+            EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("Do you like potatoes ?");
+
+            Message dialog = event.getChannel().sendMessage(builder.build()).complete();
+            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox(dialog, event.getAuthor())
+                    .useTimeout(10000L)
+                    .build();
+
+            event.fastReply("Blocking: " + decorator.get());
         }
     }
 
