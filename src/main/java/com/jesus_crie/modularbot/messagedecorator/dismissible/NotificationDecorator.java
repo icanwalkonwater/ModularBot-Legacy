@@ -1,4 +1,4 @@
-package com.jesus_crie.modularbot.messagedecorator.dismissable;
+package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;

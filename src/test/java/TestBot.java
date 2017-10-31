@@ -7,7 +7,7 @@ import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
-import com.jesus_crie.modularbot.messagedecorator.dismissable.NotificationDecorator;
+import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
