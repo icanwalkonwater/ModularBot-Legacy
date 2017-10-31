@@ -79,10 +79,11 @@ public class ModularBot {
      * @param config a custom {@link ConfigHandler}.
      * @param logger a custom {@link LogHandler}.
      * @param command a custom {@link ModularCommandListener}.
-     * @param useAudio if the audio must be enabled.
      * @param readyStatus the status to be displayed when the bot is fully operational.
+     * @param useAudio if the audio must be enabled.
+     * @param useWebhook if you want to use the webhooks in your application.
      */
-    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, boolean useAudio, boolean cache, Game readyStatus) {
+    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, Game readyStatus, boolean useAudio, boolean useCache, boolean useWebhook) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
@@ -119,30 +120,34 @@ public class ModularBot {
             logger.error("Start", e);
         }
 
-        webhookPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
-            Thread t = new Thread(r);
-            t.setName(f("%s Webhook #%s", config.getAppName(), t.getId()));
-            return t;
-        });
-        webhookCluster = new WebhookCluster().setDefaultExecutorService(webhookPool);
+        if (useWebhook) {
+            webhookPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
+                Thread t = new Thread(r);
+                t.setName(f("%s Webhook #%s", config.getAppName(), t.getId()));
+                return t;
+            });
+            webhookCluster = new WebhookCluster().setDefaultExecutorService(webhookPool);
+        } else {
+            webhookPool = null;
+            webhookCluster = null;
+        }
 
         decoratorManager = new MessageDecoratorManager();
-        decoratorCache = cache ? new DecoratorCache() : null;
+        decoratorCache = useCache ? new DecoratorCache() : null;
     }
 
     /**
      * Use to create shards and connect to discord.
      * @throws LoginException if the token is wrong.
-     * @throws InterruptedException if something interrupt a login request.
      * @throws RateLimitedException if we are rate-limited.
      */
-    public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
+    public void connectToDiscord() throws LoginException, RateLimitedException {
         logger.info("Start", "Reset stats");
         Stats.reset();
         logger.info("Start", "Attempting to spawn and start shards...");
         restartShards();
 
-        webhookCluster.setDefaultExecutorService(mightyPool);
+        if (webhookCluster != null) webhookCluster.setDefaultExecutorService(mightyPool);
 
         logger.info("Start", "Enabling auto save...");
         config.startAutoSave();
@@ -154,7 +159,6 @@ public class ModularBot {
     /**
      * Used to regenerate every shard of the bot.
      * @throws LoginException if the token is wrong.
-     * @throws InterruptedException if something interrupt a login request.
      * @throws RateLimitedException if we are rate-limited.
      */
     public void restartShards() throws LoginException, RateLimitedException {
@@ -232,6 +236,7 @@ public class ModularBot {
      * @return a new client for the given webhook.
      */
     public WebhookClient createWebHookClient(Webhook webhook) {
+        if (webhookCluster == null) throw new UnsupportedOperationException("Webhooks are disabled !");
         return webhookCluster.newBuilder(webhook).build();
     }
 
@@ -260,7 +265,7 @@ public class ModularBot {
         else decoratorManager.destroyAll();
 
         logger.info("Stop", "Closing webhooks...");
-        webhookCluster.close();
+        if (webhookCluster != null) webhookCluster.close();
 
         logger.info("Stop", f("Shutting down %s shards...", shards.size()));
         shutdownShards(force);

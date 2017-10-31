@@ -9,6 +9,9 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.util.HashMap;
 
+/**
+ * Base code for any message decorator.
+ */
 public abstract class ReactionDecorator {
 
     protected final Message bindTo;
@@ -19,7 +22,13 @@ public abstract class ReactionDecorator {
 
     protected boolean isAlive = true;
 
-    public ReactionDecorator(Message bind, User target, ReactionButton... buttons) {
+    /**
+     * Create a new decorator with some buttons and automatically register it.
+     * @param bind the message to bind to.
+     * @param target the targeted user.
+     * @param buttons the buttons to add to the decorator.
+     */
+    protected ReactionDecorator(Message bind, User target, ReactionButton... buttons) {
         Checks.notNull(bind, "message");
 
         bindTo = bind;
@@ -32,22 +41,46 @@ public abstract class ReactionDecorator {
         ModularBot.getDecoratorManager().registerDecorator(this);
     }
 
+    /**
+     * Get the target message.
+     * @return the targeted message.
+     */
     public Message getMessage() {
         return bindTo;
     }
 
+    /**
+     * Used to check if the decorator is destroyed or not.
+     * @return true if the decorator is active, otherwise false.
+     */
     public boolean isAlive() {
         return isAlive;
     }
 
-    protected abstract void onClick(MessageReactionAddEvent event);
+    /**
+     * Triggered when a button is clicked.
+     * Implementations must call this method when they create there {@link WaiterListener}.
+     * @param event the event that has triggered the button.
+     */
+    protected void onClick(MessageReactionAddEvent event) {
+        ReactionButton button = buttons.getOrDefault(event.getReactionEmote().getName(), null);
+        if (button != null) button.onClick(event, this);
+    }
 
+    /**
+     * Called when the decorator is destroyed, this happens when the bot is stopping.
+     */
     public void onDestroy() {
         isAlive = false;
         ModularBot.getDecoratorManager().unregister(this);
         bindTo.clearReactions().complete();
     }
 
+    /**
+     * Check if 2 decorators are equals.
+     * @param obj the other objet to compare to.
+     * @return true if the 2 objects are equals.
+     */
     @Override
     public boolean equals(Object obj) {
         return getClass().getName().equals(obj.getClass().getName())

@@ -1,6 +1,5 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissable;
 
-import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.utils.Waiter;
@@ -12,7 +11,7 @@ import net.dv8tion.jda.core.utils.Checks;
 public class NotificationDecorator extends DismissibleDecorator {
 
     /**
-     * The unicode character for "❌".
+     * The unicode string for "❌".
      */
     public static final String RED_CROSS = "\u274C";
 
@@ -22,7 +21,7 @@ public class NotificationDecorator extends DismissibleDecorator {
      * See {@link NotificationBuilder} for more details.
      */
     private NotificationDecorator(Message bind, User target, long timeout) {
-        super(bind, target, new ReactionButton(RED_CROSS, (e, d) -> d.onDestroy()));
+        super(bind, target, RED_CROSS);
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
@@ -31,6 +30,9 @@ public class NotificationDecorator extends DismissibleDecorator {
                 timeout, true);
     }
 
+    /**
+     * Builder for notifications.
+     */
     public static final class NotificationBuilder extends ReactionDecoratorBuilder<NotificationBuilder, NotificationDecorator> {
 
         private long timeout = 0;

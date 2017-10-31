@@ -18,7 +18,7 @@ import com.jesus_crie.modularbot.utils.menu.ModularMenu;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
 
-import java.awt.Color;
+import java.awt.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -31,6 +31,7 @@ public class TestBot {
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()
+                .useWebhooks()
                 .useCustomConfigHandler(config)
                 .build();
         ModularBot.getCommandManager().registerCommands(
