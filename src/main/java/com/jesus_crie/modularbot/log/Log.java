@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.utils.Checks;
+import org.slf4j.event.Level;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
@@ -13,7 +14,7 @@ public class Log {
     /**
      * The severity of the log.
      */
-    public final LogLevel LEVEL;
+    public final Level LEVEL;
 
     /**
      * The name of the source thread.
@@ -45,7 +46,7 @@ public class Log {
      * @param message the message associated with the log.
      * @param content (optional) an additional object that will be stringify with #toString().
      */
-    public Log(LogLevel level, String prefix, String message, Object content) {
+    public Log(Level level, String prefix, String message, Object content) {
         Checks.notNull(level, "level");
         Checks.notEmpty(message, "message");
 

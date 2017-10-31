@@ -107,10 +107,10 @@ public class Waiter {
     /**
      * Used as a base to create the logic of all other methods of this class.
      */
-    private static <T extends Event> WaiterListener<T> createListener(final ModularShard shard, final Class<T> event,
+    public static <T extends Event> WaiterListener<T> createListener(final ModularShard shard, final Class<T> event,
                                                      final Predicate<T> checker, final Consumer<T> onSuccess, final Runnable onTimeout,
                                                      final long timeout, final boolean singleTrigger) {
-        // I hate NullPointerExceptions.
+        // I hate NPEs.
         Checks.notNull(shard, "shard");
         Checks.notNull(event, "event");
 

@@ -23,6 +23,8 @@ public class ModularBuilder {
     private ModularCommandListener command;
     private boolean useAudio = false;
     private boolean useStats = false;
+    private boolean useDecoratorCache = false;
+    private boolean useWebhook = false;
     private Game readyStatus;
 
     /**
@@ -108,6 +110,27 @@ public class ModularBuilder {
     }
 
     /**
+     * TODO - Work in progress
+     *
+     * Allow Modular to save decorated message to be able to restore them after a restart.
+     * Useful for panel messages or polls.
+     * @return the current builder.
+     */
+    private ModularBuilder useDecoratorCache() {
+        useDecoratorCache = true;
+        return this;
+    }
+
+    /**
+     * Use to allow the usage of webhook in the application.
+     * @return the current builder.
+     */
+    public ModularBuilder useWebhooks() {
+        useWebhook = true;
+        return this;
+    }
+
+    /**
      * Create an instance of {@link ModularBot} with the parameter given before
      * or default values and handlers such as {@link SimpleConfig} and {@link DefaultLogHandler}.
      * @return a new instance of {@link ModularBot}.
@@ -131,6 +154,6 @@ public class ModularBuilder {
         if (readyStatus == null)
             readyStatus = Game.of(f("%shelp - v%s", config.getPrefixForGuild(null), config.getVersion().toString()));
 
-        return new ModularBot(token, config, logger, command, useAudio, readyStatus);
+        return new ModularBot(token, config, logger, command, readyStatus, useAudio, useDecoratorCache, useWebhook);
     }
 }

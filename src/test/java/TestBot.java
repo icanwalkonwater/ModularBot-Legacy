@@ -6,7 +6,11 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.log.WebhookLogger;
+import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
+import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
+import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
+import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
 import com.jesus_crie.modularbot.utils.dialog.DialogBuilder;
@@ -15,7 +19,7 @@ import com.jesus_crie.modularbot.utils.menu.ModularMenu;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
 
-import java.awt.Color;
+import java.awt.*;
 import java.time.Instant;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -28,10 +32,12 @@ public class TestBot {
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()
+                .useWebhooks()
                 .useCustomConfigHandler(config)
                 .build();
         ModularBot.getCommandManager().registerCommands(
                 new CommandTest(),
+                new CommandStat(),
                 new CommandStop()
         );
         ModularBot.getCommandManager().registerQuickCommand("ping", e -> e.fastReply("Pong !"));
@@ -61,6 +67,14 @@ public class TestBot {
                     new CommandPattern(new Argument[] {
                             Argument.forString("embed")
                     }, this::hi),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("notif")
+                    }, this::testNotification),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("dialog")
+                    }, this::testDialog),
 
                     new CommandPattern(null, this::test)
             );
@@ -120,6 +134,29 @@ public class TestBot {
 
             event.getChannel().sendMessage(response.build()).queue();
         }
+
+        private void testNotification(CommandEvent event) {
+            EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("Imma notification !")
+                    .setDescription("Click the cross to make me disappear");
+
+            Message notif = event.getChannel().sendMessage(builder.build()).complete();
+            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification(notif, event.getAuthor())
+                    .useTimeout(10000L)
+                    .build();
+        }
+
+        private void testDialog(CommandEvent event) {
+            EmbedBuilder builder = new EmbedBuilder()
+                    .setTitle("Do you like potatoes ?");
+
+            Message dialog = event.getChannel().sendMessage(builder.build()).complete();
+            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox(dialog, event.getAuthor())
+                    .useTimeout(10000L)
+                    .build();
+
+            event.fastReply("Blocking: " + decorator.get());
+        }
     }
 
     public static class CommandStop extends Command {
@@ -136,6 +173,26 @@ public class TestBot {
         private void stop(CommandEvent event) {
             event.getChannel().sendMessage(Templates.GLOBAL_SIGNED(event.getTriggerEvent().getAuthor(), "Shutting down...").build()).complete();
             ModularBot.instance().shutdown(false);
+        }
+    }
+
+    public static class CommandStat extends Command {
+
+        private static final MessageTemplate template = new MessageTemplate("Thread in mightyPool: {0}",
+                "Thread in shardPool: {1}",
+                "Decorators: {2}");
+
+        private CommandStat() {
+            super("stat", Contexts.EVERYWHERE, AccessLevel.CREATOR);
+            registerPattern(new CommandPattern(null, this::onCommand));
+        }
+
+        private void onCommand(CommandEvent event) {
+            Message message = template.format(ModularBot.instance().getMightyPool().getPoolSize(),
+                    event.getJDA().pool.getPoolSize(),
+                    ModularBot.getDecoratorManager().size());
+
+            event.getChannel().sendMessage(message).queue();
         }
     }
 

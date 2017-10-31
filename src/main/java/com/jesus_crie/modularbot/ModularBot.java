@@ -1,10 +1,12 @@
 package com.jesus_crie.modularbot;
 
 import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.listener.ModularCommandListener;
 import com.jesus_crie.modularbot.log.JDALogger;
 import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.manager.CommandManager;
+import com.jesus_crie.modularbot.manager.MessageDecoratorManager;
 import com.jesus_crie.modularbot.manager.ModularEventManager;
 import com.jesus_crie.modularbot.sharding.ModularJDABuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -16,10 +18,13 @@ import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Emote;
 import net.dv8tion.jda.core.entities.Game;
 import net.dv8tion.jda.core.entities.Guild;
+import net.dv8tion.jda.core.entities.Webhook;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.EventListener;
 import net.dv8tion.jda.core.utils.Checks;
 import net.dv8tion.jda.core.utils.SimpleLog;
+import net.dv8tion.jda.webhook.WebhookClient;
+import net.dv8tion.jda.webhook.WebhookCluster;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -60,6 +65,12 @@ public class ModularBot {
     private final CommandManager commandManager;
     private final List<ModularShard> shards;
 
+    private final WebhookCluster webhookCluster;
+    private final ScheduledThreadPoolExecutor webhookPool;
+
+    private final MessageDecoratorManager decoratorManager;
+    private final DecoratorCache decoratorCache;
+
     private final ScheduledThreadPoolExecutor mightyPool;
 
     /**
@@ -68,15 +79,16 @@ public class ModularBot {
      * @param config a custom {@link ConfigHandler}.
      * @param logger a custom {@link LogHandler}.
      * @param command a custom {@link ModularCommandListener}.
-     * @param useAudio if the audio must be enabled.
      * @param readyStatus the status to be displayed when the bot is fully operational.
+     * @param useAudio if the audio must be enabled.
+     * @param useWebhook if you want to use the webhooks in your application.
      */
-    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, boolean useAudio, Game readyStatus) {
+    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, Game readyStatus, boolean useAudio, boolean useCache, boolean useWebhook) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
             Thread t = new Thread(r);
-            t.setName(f("%s Mighty #%s", config.getAppName(), Thread.currentThread().getId()));
+            t.setName(f("%s Mighty #%s", config.getAppName(), t.getId()));
             return t;
         });
         Thread.setDefaultUncaughtExceptionHandler((t, e) -> logger.error("UNCAUGHT EXCEPTION", e));
@@ -93,7 +105,6 @@ public class ModularBot {
         instance = this;
         shards = new ArrayList<>();
         ModularBot.logger = logger;
-        SimpleLog.LEVEL = SimpleLog.Level.OFF;
         SimpleLog.addListener(new JDALogger());
         logger.info("Start", "LogHandler initialized !");
 
@@ -108,19 +119,35 @@ public class ModularBot {
             logger.fatal("Start", "Error while loading config !");
             logger.error("Start", e);
         }
+
+        if (useWebhook) {
+            webhookPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
+                Thread t = new Thread(r);
+                t.setName(f("%s Webhook #%s", config.getAppName(), t.getId()));
+                return t;
+            });
+            webhookCluster = new WebhookCluster().setDefaultExecutorService(webhookPool);
+        } else {
+            webhookPool = null;
+            webhookCluster = null;
+        }
+
+        decoratorManager = new MessageDecoratorManager();
+        decoratorCache = useCache ? new DecoratorCache() : null;
     }
 
     /**
      * Use to create shards and connect to discord.
      * @throws LoginException if the token is wrong.
-     * @throws InterruptedException if something interrupt a login request.
      * @throws RateLimitedException if we are rate-limited.
      */
-    public void connectToDiscord() throws LoginException, RateLimitedException, InterruptedException {
+    public void connectToDiscord() throws LoginException, RateLimitedException {
         logger.info("Start", "Reset stats");
         Stats.reset();
         logger.info("Start", "Attempting to spawn and start shards...");
         restartShards();
+
+        if (webhookCluster != null) webhookCluster.setDefaultExecutorService(mightyPool);
 
         logger.info("Start", "Enabling auto save...");
         config.startAutoSave();
@@ -132,7 +159,6 @@ public class ModularBot {
     /**
      * Used to regenerate every shard of the bot.
      * @throws LoginException if the token is wrong.
-     * @throws InterruptedException if something interrupt a login request.
      * @throws RateLimitedException if we are rate-limited.
      */
     public void restartShards() throws LoginException, RateLimitedException {
@@ -205,11 +231,20 @@ public class ModularBot {
     }
 
     /**
+     * Create a {@link WebhookClient} from a webhook using the webhook pool and the dedicated cluster.
+     * @param webhook the base webhook.
+     * @return a new client for the given webhook.
+     */
+    public WebhookClient createWebHookClient(Webhook webhook) {
+        if (webhookCluster == null) throw new UnsupportedOperationException("Webhooks are disabled !");
+        return webhookCluster.newBuilder(webhook).build();
+    }
+
+    /**
      * Shutdown every shards one by one.
      * @param force if true {@link ModularShard#shutdownNow()} will be used instead of {@link ModularShard#shutdown()}
      */
     private void shutdownShards(boolean force) {
-        dispatchCommand(s -> s.getPresence().setGame(Status.STOPPING));
         if (force) {
             dispatchCommand(ModularShard::shutdown);
         } else {
@@ -223,6 +258,15 @@ public class ModularBot {
      */
     public void shutdown(boolean force) {
         isReady = false;
+        dispatchCommand(s -> s.getPresence().setGame(Status.STOPPING));
+
+        logger.info("Stop", "Destroying decorators...");
+        if (decoratorManager.size() > 20) decoratorManager.destroyAllAsync(mightyPool, decoratorManager.size() / 10);
+        else decoratorManager.destroyAll();
+
+        logger.info("Stop", "Closing webhooks...");
+        if (webhookCluster != null) webhookCluster.close();
+
         logger.info("Stop", f("Shutting down %s shards...", shards.size()));
         shutdownShards(force);
 
@@ -471,5 +515,13 @@ public class ModularBot {
      */
     public static CommandManager getCommandManager() {
         return instance.commandManager;
+    }
+
+    /**
+     * Get the decorator manager of the application.
+     * @return the {@link MessageDecoratorManager}.
+     */
+    public static MessageDecoratorManager getDecoratorManager() {
+        return instance.decoratorManager;
     }
 }

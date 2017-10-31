@@ -55,7 +55,7 @@ public class DefaultModularCommandListener implements ModularCommandListener {
 
     @Override
     public void onCommandFailed(CommandFailedException e) {
-        e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), "Something wrong happened...").build()).queue();
+        e.getEvent().getChannel().sendMessage(Templates.ERROR_SIGNED(e.getEvent().getAuthor(), "Something wrong happened...\n" + e.getCause()).build()).queue();
         ModularBot.logger().error("Command", e);
     }
 

@@ -20,7 +20,6 @@ public class Stats {
     private static boolean enable = false;
 
     private static final long start = System.currentTimeMillis();
-    private static final AtomicInteger commandExecuted = new AtomicInteger(0);
     private static final AtomicInteger jdaEvent = new AtomicInteger(0);
     private static final ConcurrentHashMap<String, AtomicInteger> commands = new ConcurrentHashMap<>();
 
@@ -29,7 +28,6 @@ public class Stats {
      * Do not affect start time and exterior information like processors count, memory, ect...
      */
     public static void reset() {
-        commandExecuted.set(0);
         jdaEvent.set(0);
         commands.clear();
         ModularBot.getCommandManager().getCommands().forEach(c -> commands.put(c.getName(), new AtomicInteger(0)));
@@ -41,8 +39,6 @@ public class Stats {
      * Automatically called when a command is triggered.
      */
     public static void incrementCommand(String name) {
-        commandExecuted.incrementAndGet();
-
         // Can be optimized.
         commands.putIfAbsent(name, new AtomicInteger(0)); // If a command was registered between reset() and this method.
         commands.get(name).incrementAndGet();
@@ -78,7 +74,7 @@ public class Stats {
      */
     public static Bundle collectGlobal() {
         return new BundleBuilder()
-                .append(Keys.COMMAND_EXECUTED, commandExecuted.get())
+                .append(Keys.COMMAND_EXECUTED, commands.values().stream().mapToInt(AtomicInteger::get).sum())
                 .append(Keys.JDA_EVENT, jdaEvent.get())
                 .append(Keys.TOTAL_GUILD, ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().size(), Collectors.summingInt(i -> (int) i)))
                 .append(Keys.TOTAL_USERS, ModularBot.instance().collectCumulativeShardInfos(s -> s.getUsers().size(), Collectors.summingInt(i -> (int) i)))
@@ -130,9 +126,9 @@ public class Stats {
      * @return a {@link Bundle} containing global stats and a sub bundle for each guild.
      */
     public static Bundle collectEverything() {
-        final BundleBuilder builder = new BundleBuilder();
-        builder.merge(collectGlobal());
-        builder.merge(collectCommands());
+        final BundleBuilder builder = new BundleBuilder()
+                .merge(collectGlobal())
+                .merge(collectCommands());
         ModularBot.instance().dispatchCommand(s -> s.getGuilds().forEach(g -> builder.append("GUILD_" + g.getIdLong(), collectGuild(g))));
 
         return builder.build();

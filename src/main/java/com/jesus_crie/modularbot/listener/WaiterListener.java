@@ -9,6 +9,8 @@ import java.util.function.Predicate;
 
 public class WaiterListener<T extends Event> extends CompletableFuture<T> implements EventListener {
 
+    public static final WaiterListener EMPTY = new WaiterListener<>();
+
     private final ModularShard shard;
     private final Class<T> eventType;
     private Predicate<T> onTrigger = null;
@@ -17,6 +19,11 @@ public class WaiterListener<T extends Event> extends CompletableFuture<T> implem
         this.shard = shard;
         this.eventType = eventType;
         shard.addEventListener(this);
+    }
+
+    private WaiterListener() {
+        shard = null;
+        eventType = null;
     }
 
     public void setOnTrigger(Predicate<T> onTrigger) {
@@ -44,6 +51,7 @@ public class WaiterListener<T extends Event> extends CompletableFuture<T> implem
     }
 
     public void unregister() {
+        if (shard == null) return;
         shard.removeEventListener(this);
     }
 }

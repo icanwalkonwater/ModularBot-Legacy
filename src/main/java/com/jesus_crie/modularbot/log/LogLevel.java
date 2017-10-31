@@ -1,7 +1,7 @@
 package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
-import net.dv8tion.jda.core.utils.SimpleLog;
+import org.slf4j.event.Level;
 
 public enum LogLevel {
 
@@ -47,8 +47,8 @@ public enum LogLevel {
         return MiscUtils.capitalize(name());
     }
 
-    static LogLevel fromJDALevel(SimpleLog.Level level) {
-        switch (level.getPriority()) {
+    static LogLevel fromJDALevel(Level level) {
+        switch (level.toInt()) {
             default:
                 return IGNORE;
             case 3:

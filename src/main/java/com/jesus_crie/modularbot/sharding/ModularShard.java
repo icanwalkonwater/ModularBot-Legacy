@@ -7,14 +7,12 @@ import com.jesus_crie.modularbot.listener.ReadyListener;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.ShardedRateLimiter;
 import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.entities.Webhook;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import net.dv8tion.jda.core.utils.Checks;
-import net.dv8tion.jda.webhook.WebhookClient;
-import net.dv8tion.jda.webhook.WebhookCluster;
 import okhttp3.OkHttpClient;
 
 import javax.security.auth.login.LoginException;
@@ -30,17 +28,15 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     private boolean isReady;
     private final ModularShardInfos sInfos;
     private final ThreadPoolExecutor commandPool;
-    private final WebhookCluster webhookCluster;
 
     /**
      * Package-Private constructor inherited from {@link JDAImpl}.
-     * @see JDAImpl#JDAImpl(AccountType, OkHttpClient.Builder, WebSocketFactory, boolean, boolean, boolean, boolean, int, int)
+     * @see JDAImpl#JDAImpl(AccountType, OkHttpClient.Builder, WebSocketFactory, ShardedRateLimiter, boolean, boolean, boolean, boolean, boolean, int, int)
      */
-    ModularShard(AccountType accountType, OkHttpClient.Builder httpClientBuilder, WebSocketFactory wsFactory, boolean autoReconnect, boolean audioEnabled, boolean useShutdownHook, boolean bulkDeleteSplittingEnabled, int corePoolSize, int maxReconnectDelay) {
-        super(accountType, httpClientBuilder, wsFactory, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, corePoolSize, maxReconnectDelay);
+    ModularShard(AccountType accountType, OkHttpClient.Builder httpClientBuilder, WebSocketFactory wsFactory, ShardedRateLimiter rateLimiter, boolean autoReconnect, boolean audioEnabled, boolean useShutdownHook, boolean bulkDeleteSplittingEnabled, int corePoolSize, int maxReconnectDelay) {
+        super(accountType, httpClientBuilder, wsFactory, rateLimiter, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, true, corePoolSize, maxReconnectDelay);
         sInfos = new ModularShardInfos();
         commandPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
-        webhookCluster = new WebhookCluster();
     }
 
     /**
@@ -60,8 +56,6 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
 
         pool.setThreadFactory(new ModularThreadFactory(this, "Main", true));
         commandPool.setThreadFactory(new ModularThreadFactory(this, "Command", true));
-        webhookCluster.setDefaultExecutorService(Executors.newScheduledThreadPool(1,
-                new ModularThreadFactory(this, "Webhook", true)));
 
         // Command listener
         addEventListener(new CommandListener());
@@ -95,21 +89,12 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     }
 
     /**
-     * Create a {@link WebhookClient} from a webhook using the webhook pool and the dedicated cluster.
-     * @param webhook the base webhook.
-     * @return a new client for the given webhook.
-     */
-    public WebhookClient createWebHookClient(Webhook webhook) {
-        return webhookCluster.newBuilder(webhook).build();
-    }
-
-    /**
      * @see JDAImpl#shutdown()
      */
     @Override
     public void shutdown() {
         ModularBot.logger().info("Stop", f("Shutting down shard %s", sInfos.getShardString()));
-        webhookCluster.close();
+
         try {
             commandPool.awaitTermination(1, TimeUnit.SECONDS);
         } catch (InterruptedException ignore) {

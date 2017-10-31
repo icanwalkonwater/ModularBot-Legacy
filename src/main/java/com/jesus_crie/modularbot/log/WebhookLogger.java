@@ -1,6 +1,6 @@
 package com.jesus_crie.modularbot.log;
 
-import com.jesus_crie.modularbot.sharding.ModularShard;
+import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.utils.Icons;
 import net.dv8tion.jda.core.EmbedBuilder;
@@ -23,14 +23,11 @@ public class WebhookLogger implements LogListener {
     private final WebhookClient hook;
 
     public WebhookLogger(Webhook webhook) {
-        hook = ((ModularShard) webhook.getJDA()).createWebHookClient(webhook);
+        hook = ModularBot.instance().createWebHookClient(webhook);
     }
 
     @Override
     public void onLog(Log log) {
-        if (log.LEVEL == LogLevel.IGNORE)
-            return;
-
         String message = log.MESSAGE;
         if (message.length() > 1500)
             message = message.substring(0, 1495) + "\n...";

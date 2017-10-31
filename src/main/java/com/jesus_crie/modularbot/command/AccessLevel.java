@@ -21,18 +21,17 @@ public class AccessLevel {
      * Only the very owner of the current guild can pass this.
      * (the one that can bypass all permissions in guilds).
      */
-    public static final AccessLevel SERVER_OWNER = new AccessLevel((u, g) -> CREATOR.check(u, g) || g.getOwner().equals(g.getMember(u)));
+    public static final AccessLevel SERVER_OWNER = new AccessLevel((u, g) -> g.getOwner().equals(g.getMember(u)));
 
     /**
      * Only users with the permission {@link Permission#ADMINISTRATOR} can pass this or be the server owner.
      */
-    public static final AccessLevel ADMINISTRATOR = new AccessLevel((u, g) -> SERVER_OWNER.check(u, g) || g.getMember(u).hasPermission(Permission.ADMINISTRATOR));
+    public static final AccessLevel ADMINISTRATOR = new AccessLevel((u, g) -> g.getMember(u).hasPermission(Permission.ADMINISTRATOR));
 
     /**
      * Only users with the permission {@link Permission#MESSAGE_MANAGE} can pass this or be an administrator or the server owner.
      */
-    public static final AccessLevel MODERATOR = new AccessLevel((u, g) -> ADMINISTRATOR.check(u, g)
-            || g.getMember(u).hasPermission(Permission.MESSAGE_MANAGE));
+    public static final AccessLevel MODERATOR = new AccessLevel((u, g) -> g.getMember(u).hasPermission(Permission.MESSAGE_MANAGE));
 
     /**
      * Only bot users can pass this.
