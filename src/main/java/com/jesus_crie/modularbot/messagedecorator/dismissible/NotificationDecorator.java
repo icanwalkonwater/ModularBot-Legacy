@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
+import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.utils.Waiter;
@@ -14,14 +15,17 @@ public class NotificationDecorator extends DismissibleDecorator {
      * The unicode string for "❌".
      */
     public static final String RED_CROSS = "\u274C";
-
+    /**
+     * The {@link ReactionButton} used to dismiss a notification.
+     */
+    private static final ReactionButton DISMISS_BUTTON = new ReactionButton(RED_CROSS, (event, decorator) -> ((DismissibleDecorator) decorator).onDismiss());
 
     /**
      * Main constructor.
      * See {@link NotificationBuilder} for more details.
      */
     private NotificationDecorator(Message bind, User target, long timeout) {
-        super(bind, target, RED_CROSS);
+        super(bind, target, DISMISS_BUTTON);
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
@@ -58,6 +62,7 @@ public class NotificationDecorator extends DismissibleDecorator {
         /**
          * Used to add a timeout to the notification.
          * When the timeout is reached, the notification is no longer interactive.
+         * By default, the timeout is infinite.
          * @param timeout the timeout in milliseconds.
          * @return the current builder.
          */
