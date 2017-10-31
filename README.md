@@ -1,6 +1,6 @@
 [![Download](https://api.bintray.com/packages/spacecookie/generic/modularbot/images/download.svg)](https://bintray.com/spacecookie/generic/modularbot/_latestVersion)
-[![JDA Version](https://img.shields.io/badge/JDA-3.3.0__261-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
-[![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.43-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
+[![JDA Version](https://img.shields.io/badge/JDA-3.3.1__300-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
+[![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.44-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
 
 # ModularBot framework
 ModularBot is a java framework designed to help you creating a discord bot using Java without the boring parts.
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.jesus_crie:modularbot:1.1.3'
+    compile 'com.jesus_crie:modularbot:1.2.0'
 }
 ```
 
@@ -30,6 +30,7 @@ dependencies {
 - Log output customizable.
 - Global stats.
 - Templates (embeds & plain text).
+- Decorators to attach to messages (easy dismissible messages / dialog boxes / polls / panels) (WIP)
 
 ## Getting started
 Click [here](https://github.com/JesusCrie/ModularBot/wiki) to access the documentation.
