@@ -34,12 +34,12 @@ public abstract class ReactionDecorator {
         bindTo = bind;
         this.target = target;
         for (ReactionButton button : buttons) {
-            this.buttons.put(button.getUnicode(), button);
-            bind.addReaction(button.getUnicode()).complete();
+            this.buttons.put(button.getEmoteString(), button);
+            button.setupEmote(bind);
         }
 
         ModularBot.getDecoratorManager().registerDecorator(this);
-        ModularBot.getDecoratorManager().getCache().cacheDecorator(this);
+        ModularBot.getDecoratorManager().getCache().tryCacheDecorator(this);
     }
 
     /**
@@ -72,7 +72,8 @@ public abstract class ReactionDecorator {
      * @param event the event that has triggered the button.
      */
     protected void onClick(MessageReactionAddEvent event) {
-        ReactionButton button = buttons.getOrDefault(event.getReactionEmote().getName(), null);
+        String identifier = event.getReactionEmote().isEmote() ? event.getReactionEmote().getId() : event.getReactionEmote().getName();
+        ReactionButton button = buttons.getOrDefault(identifier, null);
         if (button != null) button.onClick(event, this);
     }
 
@@ -80,7 +81,7 @@ public abstract class ReactionDecorator {
      * Called when the decorator is destroyed, this happens when the bot is stopping,
      * when the message is deleted or when the message is dismissed.
      */
-    public void onDestroy() {
+    public void destroy() {
         isAlive = false;
         ModularBot.getDecoratorManager().unregister(this);
         bindTo.clearReactions().complete();

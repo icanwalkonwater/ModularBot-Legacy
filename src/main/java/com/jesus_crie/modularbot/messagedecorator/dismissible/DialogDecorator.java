@@ -1,30 +1,19 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
-import com.jesus_crie.modularbot.ModularBot;
+import com.jesus_crie.modularbot.messagedecorator.NotCacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.utils.IgnoreCompletableFuture;
 import com.jesus_crie.modularbot.utils.Waiter;
 import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
-import java.io.IOException;
+import java.util.function.Consumer;
 
-@JsonSerialize(using = DialogDecorator.DialogSerializer.class)
-public class DialogDecorator extends DismissibleDecorator {
+public class DialogDecorator extends DismissibleDecorator implements NotCacheable {
 
     /**
      * The button used to confirm.
@@ -38,6 +27,7 @@ public class DialogDecorator extends DismissibleDecorator {
     protected static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
 
     protected final CompletableFuture completable;
+    protected Consumer<Boolean> callback;
 
     /**
      * Main constructor
@@ -58,9 +48,19 @@ public class DialogDecorator extends DismissibleDecorator {
      * @param res the result, true/false if the dialog has been triggered otherwise null.
      */
     protected void onTrigger(Boolean res) {
-        if (res == null) onDestroy();
-        else onDismiss();
+        if (res == null) destroy();
+        else dismiss();
         completable.complete(res);
+        if (callback != null) callback.accept(res);
+    }
+
+    /**
+     * Add a callback method to this dialog box.
+     * Can be used to retrieve the value asynchronously.
+     * @param callback the callback.
+     */
+    public void setCallback(Consumer<Boolean> callback) {
+        this.callback = callback;
     }
 
     /**
@@ -106,65 +106,5 @@ public class DialogDecorator extends DismissibleDecorator {
             Checks.notNull(target, "target");
             return new DialogDecorator(bind, target, timeout);
         }
-    }
-
-    /**
-     * Serializer used to cache this decorator.
-     */
-    public static final class DialogSerializer extends StdSerializer<DialogDecorator> {
-
-        public DialogSerializer() {
-            super(DialogDecorator.class);
-        }
-
-        @Override
-        public void serialize(DialogDecorator value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            gen.writeStartObject();
-            gen.writeStringField("@class", DialogDecorator.class.getName());
-            gen.writeNumberField("message", value.getMessage().getIdLong());
-
-            String source;
-            switch (value.getMessage().getChannelType()) {
-                case TEXT:
-                    source = "G" + value.getMessage().getGuild().getIdLong();
-                    break;
-                case PRIVATE:
-                    source = "P" + value.getMessage().getPrivateChannel().getIdLong();
-                    break;
-                default:
-                    source = "?";
-            }
-            gen.writeStringField("source", source);
-
-            gen.writeNumberField("user_target", value.getTarget().getIdLong());
-            gen.writeNumberField("expire_at", value.getExpireTime());
-            gen.writeEndObject();
-        }
-    }
-
-    public static final class DialogDeserializer extends StdDeserializer<DialogDecorator> {
-
-        public DialogDeserializer() {
-            super(DialogDecorator.class);
-        }
-
-        @Override
-        public DialogDecorator deserialize(JsonParser p, DeserializationContext context) throws IOException, JsonProcessingException {
-            JsonNode node = p.getCodec().readTree(p);
-            long msgId = node.get("message").asLong();
-            String source = node.get("source").asText();
-            long userId = node.get("user_target").asLong();
-            long expire = node.get("expire_at").asLong();
-
-            ModularBot bot = ModularBot.instance();
-            MessageChannel channel;
-            switch (source.charAt(0)) {
-                case 'G':
-                    channel = bot.getTextChannelById(source.substring(1));
-            }
-
-            return null;
-        }
-
     }
 }

@@ -5,7 +5,6 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.log.WebhookLogger;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
@@ -28,8 +27,9 @@ public class TestBot {
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()
-                .useWebhooks()
+                //.useWebhooks()
                 .useCustomConfigHandler(config)
+                .useDecoratorCacheForDismissible()
                 .build();
         ModularBot.getCommandManager().registerCommands(
                 new CommandTest(),
@@ -44,7 +44,7 @@ public class TestBot {
             ModularBot.logger().error("App", e);
         }
 
-        ModularBot.logger().registerListener(new WebhookLogger(bot.getFirstShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
+        //ModularBot.logger().registerListener(new WebhookLogger(bot.getFirstShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
     }
 
     public static class CommandTest extends Command {
@@ -66,7 +66,11 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.forString("dialog")
-                    }, this::testDialog)
+                    }, this::testDialog),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("longnotif")
+                    }, this::testLongNotif)
             );
         }
 
@@ -114,8 +118,16 @@ public class TestBot {
             DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox()
                     .useTimeout(10000L)
                     .bindAndBuild(dialog, event.getAuthor());
+            decorator.setCallback(b -> event.fastReply("Async: " + b));
 
             event.fastReply("Blocking: " + decorator.get());
+        }
+
+        private void testLongNotif(CommandEvent event) {
+            Message notif = event.getChannel().sendMessage(new EmbedBuilder().setTitle("Imma long notifiaction !").build()).complete();
+            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification()
+                    .useTimeout(100000L)
+                    .bindAndBuild(notif, event.getAuthor());
         }
     }
 
@@ -138,9 +150,9 @@ public class TestBot {
 
     public static class CommandStat extends Command {
 
-        private static final MessageTemplate template = new MessageTemplate("Thread in mightyPool: {0}",
-                "Thread in shardPool: {1}",
-                "Decorators: {2}");
+        private static final MessageTemplate template = new MessageTemplate(
+                "Decorators Active: {0}",
+                "Decorators in Cache: {1}");
 
         private CommandStat() {
             super("stat", Contexts.EVERYWHERE, AccessLevel.CREATOR);
@@ -148,9 +160,10 @@ public class TestBot {
         }
 
         private void onCommand(CommandEvent event) {
-            Message message = template.format(ModularBot.instance().getMightyPool().getPoolSize(),
-                    event.getJDA().pool.getPoolSize(),
-                    ModularBot.getDecoratorManager().size());
+            Message message = template.format(
+                    ModularBot.getDecoratorManager().size(),
+                    ModularBot.getDecoratorManager().getCache().size()
+            );
 
             event.getChannel().sendMessage(message).queue();
         }

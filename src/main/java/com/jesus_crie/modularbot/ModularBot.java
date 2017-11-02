@@ -154,6 +154,9 @@ public class ModularBot implements JDA {
         logger.info("Start", "Enabling auto save...");
         config.startAutoSave();
 
+        logger.info("Start", "Resuming decorators...");
+        decoratorManager.getCache().loadAndResumeCache();
+
         logger.info("Start", "Ready !");
         isReady = true;
     }
@@ -261,6 +264,9 @@ public class ModularBot implements JDA {
     public void shutdown(boolean force) {
         isReady = false;
         dispatchCommand(s -> s.getPresence().setGame(com.jesus_crie.modularbot.utils.Status.STOPPING));
+
+        logger.info("Stop", "Saving cached decorators...");
+        decoratorManager.getCache().saveCache();
 
         logger.info("Stop", "Destroying decorators...");
         if (decoratorManager.size() > 20) decoratorManager.destroyAllAsync(mightyPool, decoratorManager.size() / 10);

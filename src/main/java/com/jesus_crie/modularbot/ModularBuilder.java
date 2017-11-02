@@ -116,7 +116,7 @@ public class ModularBuilder {
      * Useful for panel messages or polls.
      * @return the current builder.
      */
-    private ModularBuilder useDecoratorCacheForDismissible() {
+    public ModularBuilder useDecoratorCacheForDismissible() {
         useDecoratorCache = true;
         return this;
     }

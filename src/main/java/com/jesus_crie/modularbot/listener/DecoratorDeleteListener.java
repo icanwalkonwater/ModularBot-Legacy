@@ -13,6 +13,6 @@ public class DecoratorDeleteListener extends ListenerAdapter {
     @Override
     public void onMessageDelete(MessageDeleteEvent event) {
         ReactionDecorator decorator = ModularBot.getDecoratorManager().getDecoratorForMessage(event.getMessageIdLong());
-        if (decorator != null) decorator.onDestroy();
+        if (decorator != null) decorator.destroy();
     }
 }

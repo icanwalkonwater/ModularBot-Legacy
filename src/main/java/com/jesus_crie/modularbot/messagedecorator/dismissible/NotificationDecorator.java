@@ -2,7 +2,9 @@ package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -14,13 +16,14 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.IOException;
 
+@JsonSerialize(using = NotificationDecorator.NotificationSerializer.class)
 public class NotificationDecorator extends DismissibleDecorator {
 
     /**
      * The {@link ReactionButton} used to dismiss a notification.
      * The emote used is "❌"
      */
-    protected static final ReactionButton DISMISS_BUTTON = new ReactionButton("\u274C", (event, decorator) -> ((DismissibleDecorator) decorator).onDismiss());
+    protected static final ReactionButton DISMISS_BUTTON = new ReactionButton("\u274C", (event, decorator) -> ((DismissibleDecorator) decorator).dismiss());
 
     /**
      * Main constructor.
@@ -32,7 +35,7 @@ public class NotificationDecorator extends DismissibleDecorator {
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
                 e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::onClick, this::onDestroy,
+                this::onClick, this::destroy,
                 timeout, true);
     }
 
@@ -52,8 +55,9 @@ public class NotificationDecorator extends DismissibleDecorator {
          */
         @Override
         public NotificationBuilder useTimeout(long timeout) {
-            this.timeout = timeout;
-            if (timeout <= 0) this.timeout = 0;
+            if (timeout == -1) return this;
+            else if (timeout <= 0) this.timeout = 0;
+            else this.timeout = timeout;
             return this;
         }
 
@@ -78,9 +82,9 @@ public class NotificationDecorator extends DismissibleDecorator {
         @Override
         public void serialize(NotificationDecorator value, JsonGenerator gen, SerializerProvider provider) throws IOException {
             gen.writeStartObject();
-            gen.writeBooleanField("persistent", false);
-            gen.writeStringField("type", NotificationDecorator.class.getName());
+            gen.writeNumberField("@class", 2);
             gen.writeNumberField("message", value.getMessage().getIdLong());
+            gen.writeStringField("source", DecoratorCache.serializeSource(value.getMessage()));
             gen.writeNumberField("user_target", value.getTarget().getIdLong());
             gen.writeNumberField("expire_at", value.getExpireTime());
             gen.writeEndObject();

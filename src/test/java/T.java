@@ -29,6 +29,8 @@ public class T {
         print(big.stream().flatMap(Collection::stream).collect(Collectors.toList()));
         print(big.stream().flatMap(Collection::stream).distinct().count());
         print(big.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList()));
+
+        print("G0123".substring(1));
     }
 
     public static void test() throws RuntimeException {

@@ -40,8 +40,8 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
     /**
      * Delete the attached message and destroy the decorator.
      */
-    protected final void onDismiss() {
-        onDestroy();
+    protected final void dismiss() {
+        destroy();
         bindTo.delete().complete();
     }
 }
