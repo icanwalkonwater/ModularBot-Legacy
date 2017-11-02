@@ -101,9 +101,9 @@ public class TestBot {
                     .setDescription("Click the cross to make me disappear");
 
             Message notif = event.getChannel().sendMessage(builder.build()).complete();
-            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification(notif, event.getAuthor())
+            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification()
                     .useTimeout(10000L)
-                    .build();
+                    .bindAndBuild(notif, event.getAuthor());
         }
 
         private void testDialog(CommandEvent event) {
@@ -111,9 +111,9 @@ public class TestBot {
                     .setTitle("Do you like potatoes ?");
 
             Message dialog = event.getChannel().sendMessage(builder.build()).complete();
-            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox(dialog, event.getAuthor())
+            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox()
                     .useTimeout(10000L)
-                    .build();
+                    .bindAndBuild(dialog, event.getAuthor());
 
             event.fastReply("Blocking: " + decorator.get());
         }

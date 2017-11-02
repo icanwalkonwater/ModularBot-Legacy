@@ -39,6 +39,7 @@ public abstract class ReactionDecorator {
         }
 
         ModularBot.getDecoratorManager().registerDecorator(this);
+        ModularBot.getDecoratorManager().getCache().cacheDecorator(this);
     }
 
     /**
@@ -47,6 +48,14 @@ public abstract class ReactionDecorator {
      */
     public Message getMessage() {
         return bindTo;
+    }
+
+    /**
+     * Get the targeted message if one is defined.
+     * @return a possibly-null {@link User}.
+     */
+    public User getTarget() {
+        return target;
     }
 
     /**
@@ -68,12 +77,14 @@ public abstract class ReactionDecorator {
     }
 
     /**
-     * Called when the decorator is destroyed, this happens when the bot is stopping.
+     * Called when the decorator is destroyed, this happens when the bot is stopping,
+     * when the message is deleted or when the message is dismissed.
      */
     public void onDestroy() {
         isAlive = false;
         ModularBot.getDecoratorManager().unregister(this);
         bindTo.clearReactions().complete();
+        listener.cancel(true);
     }
 
     /**

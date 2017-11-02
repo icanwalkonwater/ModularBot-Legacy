@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.manager;
 
+import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.exception.AlreadyExistingDecorator;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 
@@ -14,6 +15,19 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class MessageDecoratorManager {
 
     private final ConcurrentHashMap<Long, ReactionDecorator> decorators = new ConcurrentHashMap<>();
+    private final DecoratorCache cache;
+
+    public MessageDecoratorManager(boolean saveDismissible) {
+        cache = new DecoratorCache(saveDismissible);
+    }
+
+    /**
+     * Get the decorator cache associated.
+     * @return the associated {@link DecoratorCache}.
+     */
+    public DecoratorCache getCache() {
+        return cache;
+    }
 
     /**
      * Used to register a decorator, automatically done when creating one.
@@ -31,6 +45,15 @@ public final class MessageDecoratorManager {
      */
     public void unregister(ReactionDecorator decorator) {
         decorators.remove(decorator.getMessage().getIdLong());
+    }
+
+    /**
+     * Get the decorator corresponding to the given message.
+     * @param messageId the id of the message.
+     * @return the corresponding decorator.
+     */
+    public ReactionDecorator getDecoratorForMessage(long messageId) {
+        return decorators.getOrDefault(messageId, null);
     }
 
     /**

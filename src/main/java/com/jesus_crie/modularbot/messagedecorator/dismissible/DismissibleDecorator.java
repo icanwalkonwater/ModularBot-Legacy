@@ -7,8 +7,11 @@ import net.dv8tion.jda.core.entities.User;
 
 /**
  * A decorator that can delete the attached message.
+ * This decorator is specific for one user.
  */
 public abstract class DismissibleDecorator extends ReactionDecorator {
+
+    protected final long timeout;
 
     /**
      * Create a dismissible decorator with a button that will delete the message.
@@ -16,14 +19,22 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
      * @param target the targeted user.
      * @param buttons the other buttons.
      */
-    protected DismissibleDecorator(Message bind, User target, ReactionButton... buttons) {
+    protected DismissibleDecorator(Message bind, User target, long timeout, ReactionButton... buttons) {
         super(bind, target, buttons);
+        this.timeout = timeout;
+        if (timeout < 0) {
+            return;
+        }
     }
 
-    @Override
-    public final void onDestroy() {
-        super.onDestroy();
-        listener.cancel(true);
+    /**
+     * Used for the cache.
+     * Get the timestamp when the decorator will expire.
+     * @return a timestamp.
+     */
+    public long getExpireTime() {
+        if (timeout == 0) return 0;
+        return System.currentTimeMillis() + timeout;
     }
 
     /**

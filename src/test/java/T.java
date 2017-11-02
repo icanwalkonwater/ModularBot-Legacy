@@ -1,12 +1,34 @@
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class T {
 
     public static void main(String[] args) {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node;
-        //node.get("boolField").asBoolean();
+        List<List<Integer>> big = new ArrayList<>();
+        List<Integer> l1 = new ArrayList<>();
+        List<Integer> l2 = new ArrayList<>();
+
+        l1.add(1);
+        l1.add(5);
+        l1.add(50);
+        l1.add(10);
+        l1.add(4);
+
+        l2.add(3);
+        l2.add(10);
+        l2.add(11);
+        l2.add(15);
+
+        big.add(l1);
+        big.add(l2);
+
+        print(l1.size() + l2.size());
+        print(big.stream().flatMap(Collection::stream).count());
+        print(big.stream().flatMap(Collection::stream).collect(Collectors.toList()));
+        print(big.stream().flatMap(Collection::stream).distinct().count());
+        print(big.stream().flatMap(Collection::stream).distinct().collect(Collectors.toList()));
     }
 
     public static void test() throws RuntimeException {

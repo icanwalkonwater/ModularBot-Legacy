@@ -1,36 +1,50 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationContext;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
+import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.utils.IgnoreCompletableFuture;
 import com.jesus_crie.modularbot.utils.Waiter;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageChannel;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
+import java.io.IOException;
+
+@JsonSerialize(using = DialogDecorator.DialogSerializer.class)
 public class DialogDecorator extends DismissibleDecorator {
 
     /**
      * The button used to confirm.
      * The emote used is "✅".
      */
-    private static ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
+    protected static ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
     /**
      * The button used to deny.
      * The emote used is "❎".
      */
-    private static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
+    protected static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
 
-    private final CompletableFuture completable;
+    protected final CompletableFuture completable;
 
     /**
      * Main constructor
-     * @see DismissibleDecorator#DismissibleDecorator(Message, User, ReactionButton...)
+     * See {@link DialogBuilder} for more details.
      */
-    private DialogDecorator(Message bind, User target, long timeout) {
-        super(bind, target, ACCEPT_BUTTON, DENY_BUTTON);
+    protected DialogDecorator(Message bind, User target, long timeout) {
+        super(bind, target, timeout, ACCEPT_BUTTON, DENY_BUTTON);
         completable = new CompletableFuture();
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()), MessageReactionAddEvent.class,
@@ -43,7 +57,7 @@ public class DialogDecorator extends DismissibleDecorator {
      * Triggered when one of the 2 buttons are pressed or when the timeout is reached.
      * @param res the result, true/false if the dialog has been triggered otherwise null.
      */
-    private void onTrigger(Boolean res) {
+    protected void onTrigger(Boolean res) {
         if (res == null) onDestroy();
         else onDismiss();
         completable.complete(res);
@@ -87,10 +101,70 @@ public class DialogDecorator extends DismissibleDecorator {
          * @return a new instance of {@link DialogDecorator}.
          */
         @Override
-        protected DialogDecorator bindAndBuild(Message bind, User target) {
+        public DialogDecorator bindAndBuild(Message bind, User target) {
             Checks.notNull(bind, "message");
             Checks.notNull(target, "target");
             return new DialogDecorator(bind, target, timeout);
         }
+    }
+
+    /**
+     * Serializer used to cache this decorator.
+     */
+    public static final class DialogSerializer extends StdSerializer<DialogDecorator> {
+
+        public DialogSerializer() {
+            super(DialogDecorator.class);
+        }
+
+        @Override
+        public void serialize(DialogDecorator value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            gen.writeStartObject();
+            gen.writeStringField("@class", DialogDecorator.class.getName());
+            gen.writeNumberField("message", value.getMessage().getIdLong());
+
+            String source;
+            switch (value.getMessage().getChannelType()) {
+                case TEXT:
+                    source = "G" + value.getMessage().getGuild().getIdLong();
+                    break;
+                case PRIVATE:
+                    source = "P" + value.getMessage().getPrivateChannel().getIdLong();
+                    break;
+                default:
+                    source = "?";
+            }
+            gen.writeStringField("source", source);
+
+            gen.writeNumberField("user_target", value.getTarget().getIdLong());
+            gen.writeNumberField("expire_at", value.getExpireTime());
+            gen.writeEndObject();
+        }
+    }
+
+    public static final class DialogDeserializer extends StdDeserializer<DialogDecorator> {
+
+        public DialogDeserializer() {
+            super(DialogDecorator.class);
+        }
+
+        @Override
+        public DialogDecorator deserialize(JsonParser p, DeserializationContext context) throws IOException, JsonProcessingException {
+            JsonNode node = p.getCodec().readTree(p);
+            long msgId = node.get("message").asLong();
+            String source = node.get("source").asText();
+            long userId = node.get("user_target").asLong();
+            long expire = node.get("expire_at").asLong();
+
+            ModularBot bot = ModularBot.instance();
+            MessageChannel channel;
+            switch (source.charAt(0)) {
+                case 'G':
+                    channel = bot.getTextChannelById(source.substring(1));
+            }
+
+            return null;
+        }
+
     }
 }

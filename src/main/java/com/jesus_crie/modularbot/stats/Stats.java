@@ -13,7 +13,6 @@ import net.dv8tion.jda.core.events.Event;
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 
 public class Stats {
 
@@ -76,15 +75,13 @@ public class Stats {
         return new BundleBuilder()
                 .append(Keys.COMMAND_EXECUTED, commands.values().stream().mapToInt(AtomicInteger::get).sum())
                 .append(Keys.JDA_EVENT, jdaEvent.get())
-                .append(Keys.TOTAL_GUILD, ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().size(), Collectors.summingInt(i -> (int) i)))
-                .append(Keys.TOTAL_USERS, ModularBot.instance().collectCumulativeShardInfos(s -> s.getUsers().size(), Collectors.summingInt(i -> (int) i)))
+                .append(Keys.TOTAL_GUILD, ModularBot.instance().getGuilds().size()) // TODO
+                .append(Keys.TOTAL_USERS, ModularBot.instance().getUsers())
                 .append(Keys.THREAD_COUNT, ManagementFactory.getThreadMXBean().getThreadCount())
                 .append(Keys.SHARD_COUNT, ModularBot.instance().getShards().size())
-                .append(Keys.TEXT_CHANNEL_COUNT, ModularBot.instance().collectCumulativeShardInfos(s -> s.getTextChannels().size(), Collectors.summingInt(i -> (int) i)))
-                .append(Keys.VOICE_CHANNEL_COUNT, ModularBot.instance().collectCumulativeShardInfos(s -> s.getVoiceChannels().size(), Collectors.summingInt(i -> (int) i)))
-                .append(Keys.AUDIO_CONNECTION, !ModularBot.isAudioEnabled() ? 0 :
-                                ModularBot.instance().collectCumulativeShardInfos(s -> s.getGuilds().stream().mapToInt(g -> g.getAudioManager().isConnected() ? 1 : 0).sum(),
-                                Collectors.summingInt(i -> (int) i)))
+                .append(Keys.TEXT_CHANNEL_COUNT, 0)
+                .append(Keys.VOICE_CHANNEL_COUNT, 0)
+                .append(Keys.AUDIO_CONNECTION, !ModularBot.useAudio() ? 0 : 0)
                 .append(Keys.FREE_MEMORY, Runtime.getRuntime().freeMemory())
                 .append(Keys.MAX_MEMORY, Runtime.getRuntime().maxMemory())
                 .append(Keys.CPU_AVAILABLE, Runtime.getRuntime().availableProcessors())
