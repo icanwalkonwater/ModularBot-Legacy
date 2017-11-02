@@ -59,16 +59,12 @@ public class DialogDecorator extends DismissibleDecorator {
 
     private static class CompletableFuture extends IgnoreCompletableFuture<Boolean> {}
 
-    public static class DialogBuilder extends ReactionDecoratorBuilder<DialogBuilder, DialogDecorator> {
+    /**
+     * The builder for this decorator.
+     */
+    public static class DialogBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<DialogBuilder, DialogDecorator> {
 
         private long timeout = 60000L;
-        private final User target;
-
-        public DialogBuilder(Message bind, User target) {
-            super(bind);
-            Checks.notNull(target, "target");
-            this.target = target;
-        }
 
         /**
          * (Recommended) If you use a timeout, the dialog will automatically return if the user is not responding.
@@ -85,17 +81,15 @@ public class DialogDecorator extends DismissibleDecorator {
         }
 
         /**
-         * See constructor.
-         */
-        @Override
-        protected DialogBuilder targetUser(User target) { return this; }
-
-        /**
          * Create a new {@link DialogDecorator} based on this builder.
+         * @param bind the targeted message.
+         * @param target the targeted user.
          * @return a new instance of {@link DialogDecorator}.
          */
         @Override
-        public DialogDecorator build() {
+        protected DialogDecorator bindAndBuild(Message bind, User target) {
+            Checks.notNull(bind, "message");
+            Checks.notNull(target, "target");
             return new DialogDecorator(bind, target, timeout);
         }
     }

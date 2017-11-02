@@ -32,29 +32,11 @@ public class NotificationDecorator extends DismissibleDecorator {
     }
 
     /**
-     * Builder for notifications.
+     * The builder for this decorator
      */
-    public static final class NotificationBuilder extends ReactionDecoratorBuilder<NotificationBuilder, NotificationDecorator> {
+    public static final class NotificationBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<NotificationBuilder, NotificationDecorator> {
 
         private long timeout = 0;
-        private final User target;
-
-        /**
-         * Main constructor of this builder.
-         * @param bind the message to bind to.
-         * @param target the targeted user.
-         */
-        public NotificationBuilder(Message bind, User target) {
-            super(bind);
-            Checks.notNull(target, "target");
-            this.target = target;
-        }
-
-        /**
-         * Not used here.
-         */
-        @Override
-        protected final NotificationBuilder targetUser(User target) { return this; }
 
         /**
          * Used to add a timeout to the notification.
@@ -74,7 +56,9 @@ public class NotificationDecorator extends DismissibleDecorator {
          * @return a new {@link NotificationDecorator}.
          */
         @Override
-        public NotificationDecorator build() {
+        protected NotificationDecorator bindAndBuild(Message bind, User target) {
+            Checks.notNull(bind, "message");
+            Checks.notNull(target, "target");
             return new NotificationDecorator(bind, target, timeout);
         }
     }
