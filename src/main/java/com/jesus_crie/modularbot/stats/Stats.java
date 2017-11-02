@@ -9,6 +9,7 @@ import net.dv8tion.jda.core.OnlineStatus;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.GuildVoiceState;
 import net.dv8tion.jda.core.events.Event;
+import net.dv8tion.jda.core.managers.AudioManager;
 
 import java.lang.management.ManagementFactory;
 import java.util.concurrent.ConcurrentHashMap;
@@ -75,13 +76,13 @@ public class Stats {
         return new BundleBuilder()
                 .append(Keys.COMMAND_EXECUTED, commands.values().stream().mapToInt(AtomicInteger::get).sum())
                 .append(Keys.JDA_EVENT, jdaEvent.get())
-                .append(Keys.TOTAL_GUILD, ModularBot.instance().getGuilds().size()) // TODO
+                .append(Keys.TOTAL_GUILD, ModularBot.instance().getGuilds().size())
                 .append(Keys.TOTAL_USERS, ModularBot.instance().getUsers())
                 .append(Keys.THREAD_COUNT, ManagementFactory.getThreadMXBean().getThreadCount())
                 .append(Keys.SHARD_COUNT, ModularBot.instance().getShards().size())
-                .append(Keys.TEXT_CHANNEL_COUNT, 0)
-                .append(Keys.VOICE_CHANNEL_COUNT, 0)
-                .append(Keys.AUDIO_CONNECTION, !ModularBot.useAudio() ? 0 : 0)
+                .append(Keys.TEXT_CHANNEL_COUNT, ModularBot.instance().getTextChannels().size())
+                .append(Keys.VOICE_CHANNEL_COUNT, ModularBot.instance().getVoiceChannels().size())
+                .append(Keys.AUDIO_CONNECTION, !ModularBot.useAudio() ? 0 : ModularBot.instance().getAudioManagers().stream().filter(AudioManager::isConnected).count())
                 .append(Keys.FREE_MEMORY, Runtime.getRuntime().freeMemory())
                 .append(Keys.MAX_MEMORY, Runtime.getRuntime().maxMemory())
                 .append(Keys.CPU_AVAILABLE, Runtime.getRuntime().availableProcessors())
