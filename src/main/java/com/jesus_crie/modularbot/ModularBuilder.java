@@ -110,8 +110,6 @@ public class ModularBuilder {
     }
 
     /**
-     * TODO - Work in progress
-     *
      * Allow Modular to save dismissible decorators to resume them after a restart.
      * Useful for panel messages or polls.
      * @return the current builder.

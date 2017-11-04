@@ -10,6 +10,6 @@ import net.dv8tion.jda.core.entities.Message;
 public abstract class PersistantDecorator extends ReactionDecorator {
 
     protected PersistantDecorator(Message bind, ReactionButton... buttons) {
-        super(bind, null, buttons);
+        super(bind, null, 0, buttons);
     }
 }

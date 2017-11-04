@@ -3,25 +3,23 @@ package com.jesus_crie.modularbot.config;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jesus_crie.modularbot.ModularBot;
-import com.jesus_crie.modularbot.messagedecorator.NotCacheable;
+import com.jesus_crie.modularbot.messagedecorator.Cacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
-import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DismissibleDecorator;
-import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.MessageChannel;
-import net.dv8tion.jda.core.entities.User;
 import org.apache.commons.io.FileUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.charset.Charset;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
-// TODO
 public class DecoratorCache {
 
     private final boolean allowDismissible;
@@ -69,7 +67,7 @@ public class DecoratorCache {
      * @param decorator the decorator to cache.
      */
     public void tryCacheDecorator(ReactionDecorator decorator) {
-        if (decorator instanceof NotCacheable) return;
+        if (!(decorator instanceof Cacheable)) return;
         if (decorator instanceof DismissibleDecorator && !allowDismissible) return;
         decorators.add(decorator);
     }
@@ -107,21 +105,21 @@ public class DecoratorCache {
             if (!root.isArray()) throw new IOException("The root object is not an array !");
 
             for (JsonNode node : root) { // For each saved decorator.
-                int clazz = node.get("@class").asInt();
                 long msgId = node.get("message").asLong();
                 String source = node.get("source").asText();
 
                 Message message = deserializeSource(source, msgId);
                 if (message == null) continue; // If the channel or the message no longer exist or unknown source.
 
-                switch (clazz) {
-                    case 0: // Panel
-                        break;
-                    case 1: // Poll
-                        break;
-                    case 2: // Notification
-                        retrieveAndResumeDismissible(message, clazz, node);
-                        break;
+                try {
+                    Class<?> clazz = Class.forName(node.get("@class").asText());
+                    Constructor c = clazz.getDeclaredConstructor(Message.class, JsonNode.class);
+                    c.setAccessible(true);
+                    c.newInstance(message, node);
+                } catch (InvocationTargetException e) {
+                    ModularBot.logger().warning("Decorator Cache", e.getTargetException().toString());
+                } catch (ReflectiveOperationException e) {
+                    ModularBot.logger().warning("Decorator Cache", e.toString());
                 }
             }
 
@@ -129,23 +127,6 @@ public class DecoratorCache {
         } catch (IOException e) {
             ModularBot.logger().fatal("Decorator Cache", "Failed to load cache !");
             ModularBot.logger().error("Decorator Cache", e);
-        }
-    }
-
-    private void retrieveAndResumeDismissible(Message msg, int type, JsonNode node) {
-        long targetId = node.get("user_target").asLong();
-        User user = msg.getJDA().getUserById(targetId);
-        if (msg.isFromType(ChannelType.TEXT) && !msg.getGuild().isMember(user)) return; // Target no longer in the guild.
-
-        long expire = node.get("expire_at").asLong();
-        if ((expire != 0 && expire != -1) && expire <= System.currentTimeMillis() + 5000) return; // Already expired or will expire in the 5 seconds.
-
-        final long effectiveTimeout = expire == 0 || expire == -1 ? expire : expire - System.currentTimeMillis();
-
-        if (type == 2) { // Notification
-            ReactionDecoratorBuilder.newNotification()
-                    .useTimeout(effectiveTimeout)
-                    .bindAndBuild(msg, user);
         }
     }
 

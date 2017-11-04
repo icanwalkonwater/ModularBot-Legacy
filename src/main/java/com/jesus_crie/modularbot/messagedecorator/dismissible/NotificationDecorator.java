@@ -1,10 +1,10 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
 import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.jesus_crie.modularbot.config.DecoratorCache;
+import com.jesus_crie.modularbot.messagedecorator.Cacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -16,8 +16,7 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.IOException;
 
-@JsonSerialize(using = NotificationDecorator.NotificationSerializer.class)
-public class NotificationDecorator extends DismissibleDecorator {
+public class NotificationDecorator extends DismissibleDecorator implements Cacheable {
 
     /**
      * The {@link ReactionButton} used to dismiss a notification.
@@ -37,6 +36,28 @@ public class NotificationDecorator extends DismissibleDecorator {
                 e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
                 this::onClick, this::destroy,
                 timeout, true);
+    }
+
+    /**
+     * Deserializer.
+     * @param message the source message.
+     * @param node the content node.
+     */
+    protected NotificationDecorator(Message message, JsonNode node) {
+        this(message,
+                message.getJDA().getUserById(node.get("user_target").asLong()),
+                node.get("expire_at").asLong() - System.currentTimeMillis());
+    }
+
+    @Override
+    public void serialize(JsonGenerator gen, SerializerProvider provider) throws IOException {
+        gen.writeStartObject();
+        gen.writeStringField("@class", getClass().getName());
+        gen.writeNumberField("message", bindTo.getIdLong());
+        gen.writeStringField("source", DecoratorCache.serializeSource(bindTo));
+        gen.writeNumberField("user_target", target.getIdLong());
+        gen.writeNumberField("expire_at", getExpireTime());
+        gen.writeEndObject();
     }
 
     /**
@@ -70,24 +91,6 @@ public class NotificationDecorator extends DismissibleDecorator {
             Checks.notNull(bind, "message");
             Checks.notNull(target, "target");
             return new NotificationDecorator(bind, target, timeout);
-        }
-    }
-
-    public static final class NotificationSerializer extends StdSerializer<NotificationDecorator> {
-
-        public NotificationSerializer() {
-            super(NotificationDecorator.class);
-        }
-
-        @Override
-        public void serialize(NotificationDecorator value, JsonGenerator gen, SerializerProvider provider) throws IOException {
-            gen.writeStartObject();
-            gen.writeNumberField("@class", 2);
-            gen.writeNumberField("message", value.getMessage().getIdLong());
-            gen.writeStringField("source", DecoratorCache.serializeSource(value.getMessage()));
-            gen.writeNumberField("user_target", value.getTarget().getIdLong());
-            gen.writeNumberField("expire_at", value.getExpireTime());
-            gen.writeEndObject();
         }
     }
 }

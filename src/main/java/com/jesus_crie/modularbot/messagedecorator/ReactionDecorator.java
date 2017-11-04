@@ -1,21 +1,29 @@
 package com.jesus_crie.modularbot.messagedecorator;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.jesus_crie.modularbot.ModularBot;
+import com.jesus_crie.modularbot.exception.InvalidTimeoutException;
 import com.jesus_crie.modularbot.listener.WaiterListener;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
+import java.io.IOException;
 import java.util.HashMap;
 
 /**
  * Base code for any message decorator.
  */
+@JsonSerialize(using = ReactionDecorator.DecoratorSerializer.class)
 public abstract class ReactionDecorator {
 
     protected final Message bindTo;
     protected final User target;
+    protected final long timeout;
     protected final HashMap<String, ReactionButton> buttons = new HashMap<>();
     @SuppressWarnings("unchecked")
     protected WaiterListener<MessageReactionAddEvent> listener = WaiterListener.EMPTY;
@@ -27,12 +35,15 @@ public abstract class ReactionDecorator {
      * @param bind the message to bind to.
      * @param target the targeted user.
      * @param buttons the buttons to add to the decorator.
+     * @throws InvalidTimeoutException when the timeout is < 0.
      */
-    protected ReactionDecorator(Message bind, User target, ReactionButton... buttons) {
+    protected ReactionDecorator(Message bind, User target, long timeout, ReactionButton... buttons) {
         Checks.notNull(bind, "message");
+        if (timeout < 0) throw new InvalidTimeoutException("Invalid timeout: " + timeout + " !");
 
         bindTo = bind;
         this.target = target;
+        this.timeout = timeout;
         for (ReactionButton button : buttons) {
             this.buttons.put(button.getEmoteString(), button);
             button.setupEmote(bind);
@@ -98,5 +109,19 @@ public abstract class ReactionDecorator {
         return getClass().getName().equals(obj.getClass().getName())
                 && bindTo.equals(((ReactionDecorator) obj).bindTo)
                 && buttons.size() == ((ReactionDecorator) obj).buttons.size();
+    }
+
+    public static final class DecoratorSerializer extends StdSerializer<ReactionDecorator> {
+
+        protected DecoratorSerializer() {
+            super(ReactionDecorator.class);
+        }
+
+        @Override
+        public void serialize(ReactionDecorator value, JsonGenerator gen, SerializerProvider provider) throws IOException {
+            if (value instanceof Cacheable) {
+                ((Cacheable) value).serialize(gen, provider);
+            }
+        }
     }
 }

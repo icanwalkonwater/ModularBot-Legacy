@@ -1,6 +1,5 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
-import com.jesus_crie.modularbot.messagedecorator.NotCacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -13,7 +12,7 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.util.function.Consumer;
 
-public class DialogDecorator extends DismissibleDecorator implements NotCacheable {
+public class DialogDecorator extends DismissibleDecorator {
 
     /**
      * The button used to confirm.
