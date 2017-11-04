@@ -84,7 +84,6 @@ public class DecoratorCache {
      * Save the cache to the config file.
      * Save only the decorators who will stand more than 10 seconds.
      */
-    @SuppressWarnings("unchecked")
     public void saveCache() {
         try {
             mapper.writeValue(file, decorators.stream()
