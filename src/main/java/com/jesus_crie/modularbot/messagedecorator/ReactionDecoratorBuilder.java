@@ -29,11 +29,11 @@ public abstract class ReactionDecoratorBuilder<T extends ReactionDecoratorBuilde
 
     public static abstract class DecoratorGlobalBuilder<T extends DecoratorGlobalBuilder, V extends ReactionDecorator> extends ReactionDecoratorBuilder<T> {
 
-        protected abstract V bindAndBuild(Message bind);
+        public abstract V bindAndBuild(Message bind);
     }
 
     public static abstract class DecoratorTargetBuilder<T extends DecoratorTargetBuilder, V extends ReactionDecorator> extends ReactionDecoratorBuilder<T> {
 
-        protected abstract V bindAndBuild(Message bind, User target);
+        public abstract V bindAndBuild(Message bind, User target);
     }
 }

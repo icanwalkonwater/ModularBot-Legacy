@@ -81,11 +81,11 @@ public abstract class ReactionDecorator {
      * Triggered when a button is clicked.
      * Implementations must call this method when they create there {@link WaiterListener}.
      * @param event the event that has triggered the button.
+     * @return the possibly-null button that has been clicked for further treatment.
      */
-    protected void onClick(MessageReactionAddEvent event) {
+    protected ReactionButton onClick(MessageReactionAddEvent event) {
         String identifier = event.getReactionEmote().isEmote() ? event.getReactionEmote().getId() : event.getReactionEmote().getName();
-        ReactionButton button = buttons.getOrDefault(identifier, null);
-        if (button != null) button.onClick(event, this);
+        return buttons.getOrDefault(identifier, null);
     }
 
     /**

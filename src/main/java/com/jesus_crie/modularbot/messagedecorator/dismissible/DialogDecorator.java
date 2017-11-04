@@ -75,7 +75,7 @@ public class DialogDecorator extends DismissibleDecorator {
     /**
      * The builder for this decorator.
      */
-    public static class DialogBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<DialogBuilder, DialogDecorator> {
+    public static final class DialogBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<DialogBuilder, DialogDecorator> {
 
         private long timeout = 60000L;
 
