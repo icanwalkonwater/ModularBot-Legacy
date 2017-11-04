@@ -1,6 +1,5 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
-import com.jesus_crie.modularbot.exception.InvalidTimeoutException;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 import net.dv8tion.jda.core.entities.Message;
@@ -12,8 +11,6 @@ import net.dv8tion.jda.core.entities.User;
  */
 public abstract class DismissibleDecorator extends ReactionDecorator {
 
-    protected final long timeout;
-
     /**
      * Create a dismissible decorator with a button that will delete the message.
      * @param bind the message to bind to.
@@ -22,8 +19,6 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
      */
     protected DismissibleDecorator(Message bind, User target, long timeout, ReactionButton... buttons) {
         super(bind, target, timeout, buttons);
-        this.timeout = timeout;
-        if (timeout < 0) throw new InvalidTimeoutException("Invalid timeout: " + timeout + " !");
     }
 
     /**
