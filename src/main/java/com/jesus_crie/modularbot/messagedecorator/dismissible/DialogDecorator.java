@@ -37,8 +37,8 @@ public class DialogDecorator extends DismissibleDecorator {
         completable = new CompletableFuture();
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()), MessageReactionAddEvent.class,
-                e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::onClick, () -> onTrigger(null),
+                e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
+                this::click, () -> onTrigger(null),
                 timeout, true);
     }
 

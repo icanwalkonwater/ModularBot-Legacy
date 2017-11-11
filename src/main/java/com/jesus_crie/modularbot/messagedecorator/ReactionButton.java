@@ -11,6 +11,8 @@ import java.util.function.BiConsumer;
 
 public class ReactionButton {
 
+    protected static final OnReactionListener EMPTY_LISTENER = (e, d) -> {};
+
     private String unicode;
     private Emote emote;
     private final OnReactionListener action;

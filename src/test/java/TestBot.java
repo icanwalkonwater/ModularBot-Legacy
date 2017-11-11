@@ -5,17 +5,22 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
+import com.jesus_crie.modularbot.messagedecorator.DecoratorListener;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
+import com.jesus_crie.modularbot.messagedecorator.persistant.PollDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
+import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageReaction;
+import net.dv8tion.jda.core.entities.User;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.List;
 
@@ -70,7 +75,11 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.forString("longnotif")
-                    }, this::testLongNotif)
+                    }, this::testLongNotif),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("poll")
+                    }, this::testPoll)
             );
         }
 
@@ -114,12 +123,12 @@ public class TestBot {
             EmbedBuilder builder = new EmbedBuilder()
                     .setTitle("Do you like potatoes ?");
 
-            Message dialog = event.getChannel().sendMessage(builder.build()).complete();
+            Message message = event.getChannel().sendMessage(builder.build()).complete();
             DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox()
                     .useTimeout(10000L)
-                    .bindAndBuild(dialog, event.getAuthor());
-            decorator.setCallback(b -> event.fastReply("Async: " + b));
+                    .bindAndBuild(message, event.getAuthor());
 
+            decorator.setCallback(bool -> event.fastReply("Async: " + bool));
             event.fastReply("Blocking: " + decorator.get());
         }
 
@@ -128,6 +137,25 @@ public class TestBot {
             NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification()
                     .useTimeout(100000L)
                     .bindAndBuild(notif, event.getAuthor());
+        }
+
+        private void testPoll(CommandEvent event) {
+            DecoratorListener listener = new DecoratorListener() {
+                @Override
+                public boolean onVote(PollDecorator decorator, MessageReaction.ReactionEmote emote, User voter, boolean isVote) {
+                    event.fastReply(voter.getName() + (isVote ? " has voted " : " has removed his vote ") + MiscUtils.stringifyEmote(emote));
+                    return false;
+                }
+            };
+
+            Message poll = event.getChannel().sendMessage(new EmbedBuilder().setTitle("Imma cool poll !").build()).complete();
+            PollDecorator decorator = ReactionDecoratorBuilder.newPoll()
+                    .useTimeout(60000L)
+                    .addChoice("\uD83D\uDC19") // Octopus
+                    .addChoice("\uD83C\uDF46") // Aubergine
+                    .addChoice("\uD83C\uDF6A") // Cookie
+                    .bindAndBuild(poll);
+            decorator.setListener(listener);
         }
     }
 

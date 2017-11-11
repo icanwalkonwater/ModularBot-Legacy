@@ -2,6 +2,7 @@ package com.jesus_crie.modularbot.messagedecorator;
 
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
+import com.jesus_crie.modularbot.messagedecorator.persistant.PollDecorator;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
 
@@ -21,6 +22,14 @@ public abstract class ReactionDecoratorBuilder<T extends ReactionDecoratorBuilde
      */
     public static DialogDecorator.DialogBuilder newDialogBox() {
         return new DialogDecorator.DialogBuilder();
+    }
+
+    /**
+     * Initialize a new builder to create a {@link PollDecorator}.
+     * @return a new {@link com.jesus_crie.modularbot.messagedecorator.persistant.PollDecorator.PollBuilder}.
+     */
+    public static PollDecorator.PollBuilder newPoll() {
+        return new PollDecorator.PollBuilder();
     }
 
     // Builder stuff. Used in internal.

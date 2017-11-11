@@ -87,7 +87,7 @@ public class DecoratorCache {
     public void saveCache() {
         try {
             mapper.writeValue(file, decorators.stream()
-                    .filter(d -> !(d instanceof DismissibleDecorator && ((DismissibleDecorator) d).getExpireTime() < System.currentTimeMillis() + 10000))
+                    .filter(d -> !(d instanceof DismissibleDecorator && d.getExpireTime() < System.currentTimeMillis() + 10000))
                     .collect(Collectors.toList()));
         } catch (IOException e) {
             ModularBot.logger().fatal("Decorator Cache", "Failed to save cache !");
@@ -115,6 +115,7 @@ public class DecoratorCache {
                     Constructor c = clazz.getDeclaredConstructor(Message.class, JsonNode.class);
                     c.setAccessible(true);
                     c.newInstance(message, node);
+                    c.setAccessible(false);
                 } catch (InvocationTargetException e) {
                     ModularBot.logger().warning("Decorator Cache", e.getTargetException().toString());
                 } catch (ReflectiveOperationException e) {

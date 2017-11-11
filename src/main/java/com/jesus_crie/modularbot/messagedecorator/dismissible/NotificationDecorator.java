@@ -3,7 +3,6 @@ package com.jesus_crie.modularbot.messagedecorator.dismissible;
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.SerializerProvider;
-import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.messagedecorator.Cacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
@@ -33,10 +32,12 @@ public class NotificationDecorator extends DismissibleDecorator implements Cache
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
-                e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::onClick, this::destroy,
+                e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
+                this::click, this::destroy,
                 timeout, true);
     }
+
+    // Serialization stuff
 
     /**
      * Deserializer.
@@ -51,13 +52,8 @@ public class NotificationDecorator extends DismissibleDecorator implements Cache
 
     @Override
     public void serialize(JsonGenerator gen, SerializerProvider provider) throws IOException {
-        gen.writeStartObject();
-        gen.writeStringField("@class", getClass().getName());
-        gen.writeNumberField("message", bindTo.getIdLong());
-        gen.writeStringField("source", DecoratorCache.serializeSource(bindTo));
         gen.writeNumberField("user_target", target.getIdLong());
         gen.writeNumberField("expire_at", getExpireTime());
-        gen.writeEndObject();
     }
 
     /**

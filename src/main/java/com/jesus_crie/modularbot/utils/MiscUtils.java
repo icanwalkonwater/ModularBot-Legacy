@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.utils;
 
+import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.utils.Checks;
 import net.dv8tion.jda.core.utils.MiscUtil;
@@ -47,6 +48,10 @@ public class MiscUtils {
 
     public static String stringifyUser(User u) {
         return u.getName() + "#" + u.getDiscriminator();
+    }
+
+    public static String stringifyEmote(MessageReaction.ReactionEmote emote) {
+        return emote.isEmote() ? emote.getId() : emote.getName();
     }
 
     public static String capitalize(String s) {

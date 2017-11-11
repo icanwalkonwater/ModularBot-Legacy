@@ -33,7 +33,7 @@ public class WaiterListener<T extends Event> extends CompletableFuture<T> implem
     @SuppressWarnings("unchecked")
     @Override
     public void onEvent(Event event) {
-        if (event.getClass().getName().equals(eventType.getName())) {
+        if (eventType.isAssignableFrom(event.getClass())) {
             if (onTrigger == null)
                 return;
 

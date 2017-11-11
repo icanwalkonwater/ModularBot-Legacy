@@ -10,5 +10,5 @@ import java.io.IOException;
  */
 public interface Cacheable {
 
-    void serialize(JsonGenerator generator, SerializerProvider provider) throws IOException;
+    void serialize(JsonGenerator gen, SerializerProvider provider) throws IOException;
 }

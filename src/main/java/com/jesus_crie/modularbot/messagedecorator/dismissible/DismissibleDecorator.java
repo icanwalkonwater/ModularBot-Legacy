@@ -23,26 +23,17 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
     }
 
     @Override
-    protected ReactionButton onClick(MessageReactionAddEvent event) {
-        ReactionButton button = super.onClick(event);
+    protected ReactionButton click(MessageReactionAddEvent event) {
+        ReactionButton button = super.click(event);
         if (button != null) button.onClick(event, this);
         return button;
-    }
-
-    /**
-     * Used for the cache.
-     * Get the timestamp when the decorator will expire.
-     * @return a timestamp.
-     */
-    public long getExpireTime() {
-        if (timeout == 0) return 0;
-        return System.currentTimeMillis() + timeout;
     }
 
     /**
      * Delete the attached message and destroy the decorator.
      */
     protected final void dismiss() {
+        if (callback != null && callback.onDismiss(this)) return;
         destroy();
         bindTo.delete().complete();
     }
