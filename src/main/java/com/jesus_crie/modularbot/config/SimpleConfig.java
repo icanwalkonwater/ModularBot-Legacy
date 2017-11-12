@@ -20,12 +20,12 @@ import java.util.concurrent.TimeUnit;
  */
 public class SimpleConfig implements ConfigHandler {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    protected static final ObjectMapper mapper = new ObjectMapper();
 
-    private final File configFile;
+    protected final File configFile;
     private final Version version;
     private final String appName;
-    private final HashMap<String, JsonNode> settings = new HashMap<>();
+    protected final HashMap<String, JsonNode> settings = new HashMap<>();
 
     public SimpleConfig(String configFile, Version version, String appName) {
         this.version = version;
