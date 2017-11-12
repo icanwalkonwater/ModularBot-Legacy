@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import java.io.IOException;
 
 /**
- * If an object implement this interface, it can't be cached.
+ * If an object implement this interface, it can be cached.
  */
 public interface Cacheable {
 
