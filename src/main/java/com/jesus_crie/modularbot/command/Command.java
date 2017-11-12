@@ -103,6 +103,15 @@ public abstract class Command {
     }
 
     /**
+     * Get all command patterns.
+     * Usefull for help command.
+     * @return an unmodifiable list of all patterns.
+     */
+    public List<CommandPattern> getPatterns() {
+        return Collections.unmodifiableList(patterns);
+    }
+
+    /**
      * Check if the current context is supported by the command.
      * @param type the current context.
      * @return true if the command can be executed from here, otherwise false.
