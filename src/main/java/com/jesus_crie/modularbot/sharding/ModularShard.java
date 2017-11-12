@@ -3,6 +3,7 @@ package com.jesus_crie.modularbot.sharding;
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.listener.CommandListener;
+import com.jesus_crie.modularbot.listener.DecoratorDeleteListener;
 import com.jesus_crie.modularbot.listener.ReadyListener;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
@@ -57,8 +58,9 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
         pool.setThreadFactory(new ModularThreadFactory(this, "Main", true));
         commandPool.setThreadFactory(new ModularThreadFactory(this, "Command", true));
 
-        // Command listener
+        // Listeners
         addEventListener(new CommandListener());
+        addEventListener(new DecoratorDeleteListener());
     }
 
     /**

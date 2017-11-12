@@ -5,18 +5,23 @@ import com.jesus_crie.modularbot.config.ConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.log.WebhookLogger;
+import com.jesus_crie.modularbot.messagedecorator.DecoratorListener;
+import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
+import com.jesus_crie.modularbot.messagedecorator.persistant.PollDecorator;
 import com.jesus_crie.modularbot.template.EmbedTemplate;
 import com.jesus_crie.modularbot.template.MessageTemplate;
 import com.jesus_crie.modularbot.template.Templates;
 import com.jesus_crie.modularbot.utils.F;
+import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.EmbedBuilder;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageReaction;
+import net.dv8tion.jda.core.entities.User;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Instant;
 import java.util.List;
 
@@ -28,8 +33,9 @@ public class TestBot {
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()
-                .useWebhooks()
+                //.useWebhooks()
                 .useCustomConfigHandler(config)
+                .useDecoratorCacheForDismissible()
                 .build();
         ModularBot.getCommandManager().registerCommands(
                 new CommandTest(),
@@ -44,7 +50,7 @@ public class TestBot {
             ModularBot.logger().error("App", e);
         }
 
-        ModularBot.logger().registerListener(new WebhookLogger(bot.getFirstShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
+        //ModularBot.logger().registerListener(new WebhookLogger(bot.getFirstShard().getGuildById(264001800686796800L).getWebhooks().complete().get(0)));
     }
 
     public static class CommandTest extends Command {
@@ -66,7 +72,15 @@ public class TestBot {
 
                     new CommandPattern(new Argument[] {
                             Argument.forString("dialog")
-                    }, this::testDialog)
+                    }, this::testDialog),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("longnotif")
+                    }, this::testLongNotif),
+
+                    new CommandPattern(new Argument[] {
+                            Argument.forString("poll")
+                    }, this::testPoll)
             );
         }
 
@@ -101,21 +115,58 @@ public class TestBot {
                     .setDescription("Click the cross to make me disappear");
 
             Message notif = event.getChannel().sendMessage(builder.build()).complete();
-            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification(notif, event.getAuthor())
+            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification()
                     .useTimeout(10000L)
-                    .build();
+                    .bindAndBuild(notif, event.getAuthor());
         }
 
         private void testDialog(CommandEvent event) {
             EmbedBuilder builder = new EmbedBuilder()
                     .setTitle("Do you like potatoes ?");
 
-            Message dialog = event.getChannel().sendMessage(builder.build()).complete();
-            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox(dialog, event.getAuthor())
+            Message message = event.getChannel().sendMessage(builder.build()).complete();
+            DialogDecorator decorator = ReactionDecoratorBuilder.newDialogBox()
                     .useTimeout(10000L)
-                    .build();
+                    .bindAndBuild(message, event.getAuthor());
 
+            decorator.setCallback(bool -> event.fastReply("Async: " + bool));
             event.fastReply("Blocking: " + decorator.get());
+        }
+
+        private void testLongNotif(CommandEvent event) {
+            Message notif = event.getChannel().sendMessage(new EmbedBuilder().setTitle("Imma long notifiaction !").build()).complete();
+            NotificationDecorator decorator = ReactionDecoratorBuilder.newNotification()
+                    .useTimeout(100000L)
+                    .bindAndBuild(notif, event.getAuthor());
+        }
+
+        private void testPoll(CommandEvent event) {
+            DecoratorListener listener = new DecoratorListener() {
+                @Override
+                public boolean onVote(PollDecorator decorator, MessageReaction.ReactionEmote emote, User voter, boolean isVote) {
+                    event.fastReply(voter.getName() + (isVote ? " has voted " : " has removed his vote ") + MiscUtils.stringifyEmote(emote));
+                    return false;
+                }
+
+                @Override
+                public void onReady(ReactionDecorator decorator) {
+                    event.fastReply(((PollDecorator) decorator).getVotes().toString());
+                }
+
+                @Override
+                public void onDestroy(ReactionDecorator decorator) {
+                    event.fastReply(((PollDecorator) decorator).getVotes().toString());
+                }
+            };
+
+            Message poll = event.getChannel().sendMessage(new EmbedBuilder().setTitle("Imma cool poll !").build()).complete();
+            PollDecorator decorator = ReactionDecoratorBuilder.newPoll()
+                    .useTimeout(5000L)
+                    .addChoice("\uD83D\uDC19") // Octopus
+                    .addChoice("\uD83C\uDF46") // Aubergine
+                    .addChoice("\uD83C\uDF6A") // Cookie
+                    .bindAndBuild(poll);
+            decorator.setListener(listener);
         }
     }
 
@@ -138,9 +189,9 @@ public class TestBot {
 
     public static class CommandStat extends Command {
 
-        private static final MessageTemplate template = new MessageTemplate("Thread in mightyPool: {0}",
-                "Thread in shardPool: {1}",
-                "Decorators: {2}");
+        private static final MessageTemplate template = new MessageTemplate(
+                "Decorators Active: {0}",
+                "Decorators in Cache: {1}");
 
         private CommandStat() {
             super("stat", Contexts.EVERYWHERE, AccessLevel.CREATOR);
@@ -148,9 +199,10 @@ public class TestBot {
         }
 
         private void onCommand(CommandEvent event) {
-            Message message = template.format(ModularBot.instance().getMightyPool().getPoolSize(),
-                    event.getJDA().pool.getPoolSize(),
-                    ModularBot.getDecoratorManager().size());
+            Message message = template.format(
+                    ModularBot.getDecoratorManager().size(),
+                    ModularBot.getDecoratorManager().getCache().size()
+            );
 
             event.getChannel().sendMessage(message).queue();
         }

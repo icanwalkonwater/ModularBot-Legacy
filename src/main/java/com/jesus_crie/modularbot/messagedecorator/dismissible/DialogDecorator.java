@@ -10,43 +10,58 @@ import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
+import java.util.function.Consumer;
+
 public class DialogDecorator extends DismissibleDecorator {
 
     /**
      * The button used to confirm.
      * The emote used is "✅".
      */
-    private static ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
+    protected static ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
     /**
      * The button used to deny.
      * The emote used is "❎".
      */
-    private static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
+    protected static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
 
-    private final CompletableFuture completable;
+    protected final CompletableFuture completable;
+    protected Consumer<Boolean> callback;
 
     /**
      * Main constructor
-     * @see DismissibleDecorator#DismissibleDecorator(Message, User, ReactionButton...)
+     * See {@link DialogBuilder} for more details.
      */
-    private DialogDecorator(Message bind, User target, long timeout) {
-        super(bind, target, ACCEPT_BUTTON, DENY_BUTTON);
+    protected DialogDecorator(Message bind, User target, long timeout) {
+        super(bind, target, timeout, false, ACCEPT_BUTTON, DENY_BUTTON);
         completable = new CompletableFuture();
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()), MessageReactionAddEvent.class,
-                e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::onClick, () -> onTrigger(null),
+                e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
+                this::click, () -> onTrigger(null),
                 timeout, true);
+
+        if (super.callback != null) super.callback.onReady(this);
     }
 
     /**
      * Triggered when one of the 2 buttons are pressed or when the timeout is reached.
      * @param res the result, true/false if the dialog has been triggered otherwise null.
      */
-    private void onTrigger(Boolean res) {
-        if (res == null) onDestroy();
-        else onDismiss();
+    protected void onTrigger(Boolean res) {
+        if (res == null) destroy(true);
+        else dismiss();
         completable.complete(res);
+        if (callback != null) callback.accept(res);
+    }
+
+    /**
+     * Add a callback method to this dialog box.
+     * Can be used to retrieve the value asynchronously.
+     * @param callback the callback.
+     */
+    public void setCallback(Consumer<Boolean> callback) {
+        this.callback = callback;
     }
 
     /**
@@ -57,18 +72,17 @@ public class DialogDecorator extends DismissibleDecorator {
         return completable.get();
     }
 
+    /**
+     * An {@link IgnoreCompletableFuture} for booleans.
+     */
     private static class CompletableFuture extends IgnoreCompletableFuture<Boolean> {}
 
-    public static class DialogBuilder extends ReactionDecoratorBuilder<DialogBuilder, DialogDecorator> {
+    /**
+     * The builder for this decorator.
+     */
+    public static final class DialogBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<DialogBuilder, DialogDecorator> {
 
         private long timeout = 60000L;
-        private final User target;
-
-        public DialogBuilder(Message bind, User target) {
-            super(bind);
-            Checks.notNull(target, "target");
-            this.target = target;
-        }
 
         /**
          * (Recommended) If you use a timeout, the dialog will automatically return if the user is not responding.
@@ -85,17 +99,15 @@ public class DialogDecorator extends DismissibleDecorator {
         }
 
         /**
-         * See constructor.
-         */
-        @Override
-        protected DialogBuilder targetUser(User target) { return this; }
-
-        /**
          * Create a new {@link DialogDecorator} based on this builder.
+         * @param bind the targeted message.
+         * @param target the targeted user.
          * @return a new instance of {@link DialogDecorator}.
          */
         @Override
-        public DialogDecorator build() {
+        public DialogDecorator bindAndBuild(Message bind, User target) {
+            Checks.notNull(bind, "message");
+            Checks.notNull(target, "target");
             return new DialogDecorator(bind, target, timeout);
         }
     }

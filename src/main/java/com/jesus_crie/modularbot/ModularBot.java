@@ -1,7 +1,6 @@
 package com.jesus_crie.modularbot;
 
 import com.jesus_crie.modularbot.config.ConfigHandler;
-import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.listener.ModularCommandListener;
 import com.jesus_crie.modularbot.log.JDALogger;
 import com.jesus_crie.modularbot.log.LogHandler;
@@ -12,36 +11,40 @@ import com.jesus_crie.modularbot.sharding.ModularJDABuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
 import com.jesus_crie.modularbot.stats.Stats;
 import com.jesus_crie.modularbot.utils.MiscUtils;
-import com.jesus_crie.modularbot.utils.Status;
+import net.dv8tion.jda.bot.JDABot;
+import net.dv8tion.jda.client.JDAClient;
 import net.dv8tion.jda.core.AccountType;
+import net.dv8tion.jda.core.JDA;
 import net.dv8tion.jda.core.OnlineStatus;
-import net.dv8tion.jda.core.entities.Emote;
-import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Webhook;
+import net.dv8tion.jda.core.entities.*;
+import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
-import net.dv8tion.jda.core.hooks.EventListener;
+import net.dv8tion.jda.core.hooks.IEventManager;
+import net.dv8tion.jda.core.managers.AudioManager;
+import net.dv8tion.jda.core.managers.Presence;
+import net.dv8tion.jda.core.requests.RestAction;
+import net.dv8tion.jda.core.requests.restaction.GuildAction;
 import net.dv8tion.jda.core.utils.Checks;
 import net.dv8tion.jda.core.utils.SimpleLog;
+import net.dv8tion.jda.core.utils.cache.CacheView;
+import net.dv8tion.jda.core.utils.cache.SnowflakeCacheView;
 import net.dv8tion.jda.webhook.WebhookClient;
 import net.dv8tion.jda.webhook.WebhookCluster;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.json.JSONObject;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import javax.security.auth.login.LoginException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import static com.jesus_crie.modularbot.utils.F.f;
@@ -49,7 +52,7 @@ import static com.jesus_crie.modularbot.utils.F.f;
 /**
  * Can only be instantiated one time.
  */
-public class ModularBot {
+public class ModularBot implements JDA {
 
     private static ModularBot instance;
     private static LogHandler logger;
@@ -69,7 +72,6 @@ public class ModularBot {
     private final ScheduledThreadPoolExecutor webhookPool;
 
     private final MessageDecoratorManager decoratorManager;
-    private final DecoratorCache decoratorCache;
 
     private final ScheduledThreadPoolExecutor mightyPool;
 
@@ -81,9 +83,10 @@ public class ModularBot {
      * @param command a custom {@link ModularCommandListener}.
      * @param readyStatus the status to be displayed when the bot is fully operational.
      * @param useAudio if the audio must be enabled.
+     * @param cacheDismissible if the dismissible decorators can be cached.
      * @param useWebhook if you want to use the webhooks in your application.
      */
-    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, Game readyStatus, boolean useAudio, boolean useCache, boolean useWebhook) {
+    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, Game readyStatus, boolean useAudio, boolean cacheDismissible, boolean useWebhook) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
@@ -132,8 +135,7 @@ public class ModularBot {
             webhookCluster = null;
         }
 
-        decoratorManager = new MessageDecoratorManager();
-        decoratorCache = useCache ? new DecoratorCache() : null;
+        decoratorManager = new MessageDecoratorManager(cacheDismissible);
     }
 
     /**
@@ -152,6 +154,9 @@ public class ModularBot {
         logger.info("Start", "Enabling auto save...");
         config.startAutoSave();
 
+        logger.info("Start", "Resuming decorators...");
+        decoratorManager.getCache().loadAndResumeCache();
+
         logger.info("Start", "Ready !");
         isReady = true;
     }
@@ -164,7 +169,7 @@ public class ModularBot {
     public void restartShards() throws LoginException, RateLimitedException {
         if (!shards.isEmpty()) {
             shards.forEach(s -> {
-                s.getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, Status.STOPPING);
+                s.getPresence().setPresence(OnlineStatus.DO_NOT_DISTURB, com.jesus_crie.modularbot.utils.Status.STOPPING);
                 s.shutdownNow();
             });
         }
@@ -217,8 +222,9 @@ public class ModularBot {
                     .setAutoReconnect(true)
                     .setAudioEnabled(useAudio)
                     .setEventManager(new ModularEventManager())
+                    .setBulkDeleteSplittingEnabled(false)
                     .setIdle(false)
-                    .setGame(Status.STARTING);
+                    .setGame(com.jesus_crie.modularbot.utils.Status.STARTING);
         }
     }
 
@@ -258,7 +264,10 @@ public class ModularBot {
      */
     public void shutdown(boolean force) {
         isReady = false;
-        dispatchCommand(s -> s.getPresence().setGame(Status.STOPPING));
+        dispatchCommand(s -> s.getPresence().setGame(com.jesus_crie.modularbot.utils.Status.STOPPING));
+
+        logger.info("Stop", "Saving cached decorators...");
+        decoratorManager.getCache().saveCache();
 
         logger.info("Stop", "Destroying decorators...");
         if (decoratorManager.size() > 20) decoratorManager.destroyAllAsync(mightyPool, decoratorManager.size() / 10);
@@ -291,24 +300,6 @@ public class ModularBot {
     }
 
     /**
-     * Register each listener in each shard of the bot.
-     * @param listeners the listeners to register.
-     * @see ModularShard#addEventListener(Object...)
-     */
-    public void addEventListener(EventListener... listeners) {
-        dispatchCommand(s -> s.addEventListener((Object[]) listeners));
-    }
-
-    /**
-     * Unregister each listener in each shard of the bot.
-     * @param listeners the listeners to unregister.
-     * @see ModularShard#removeEventListener(Object...)
-     */
-    public void removeEventListener(EventListener... listeners) {
-        dispatchCommand(s -> s.removeEventListener((Object[]) listeners));
-    }
-
-    /**
      * Get an unmodifiable list of all shards
      * @return an instance of {@link Collections.UnmodifiableList} that contains a copy of all shards.
      */
@@ -338,33 +329,6 @@ public class ModularBot {
     }
 
     /**
-     * Used to collect infos from all shards by shards.
-     * Mainly used to collect stats.
-     * @param action used to get the needed object in each shard.
-     * @param <T> the type of Object needed.
-     * @return a {@link List} with the needed T object of each shard.
-     */
-    public <T> List<T> collectShardInfos(Function<ModularShard, T> action) {
-        return shards.stream()
-                .map(action)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Used to collect infos and add them together in a single object.
-     * Mainly used to collect stats.
-     * @param action used to get the needed object in each shard.
-     * @param mapper used to merge each object into one.
-     * @param <T> the type of Object needed.
-     * @return an object T with contains merged data from each shard.
-     */
-    public <T> T collectCumulativeShardInfos(Function<ModularShard, T> action, Collector<T, ?, T> mapper) {
-        return shards.stream()
-                .map(action)
-                .collect(mapper);
-    }
-
-    /**
      * Used to collect infos across shards and collect them into one list.
      * Mainly used for stats.
      * @param action used to collect data in each shards and convert them into {@link T}.
@@ -382,45 +346,6 @@ public class ModularBot {
                         datas.add(t);
                 });
         return datas;
-    }
-
-    /**
-     * Search for an emote across the shards.
-     * @param id the id of the emote.
-     * @return the emote if it exist otherwise null.
-     */
-    public Emote getEmoteById(String id) {
-        try {
-            return getEmoteById(Long.parseLong(id));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    public Emote getEmoteById(long id) {
-        return collectShardInfos(s -> s.getGuilds().stream()
-                    .map(g -> g.getEmoteById(id))
-                    .findFirst()
-                    .orElse(null)).stream()
-                .findFirst()
-                .orElse(null);
-    }
-
-    /**
-     * Get a guild by its id across the shards.
-     * @param id the id of the guild.
-     * @return the guild or null if it doesn't exist.
-     */
-    public Guild getGuildById(String id) {
-        try {
-            return getGuildById(Long.parseLong(id));
-        } catch (NumberFormatException e) {
-            return null;
-        }
-    }
-
-    public Guild getGuildById(long id) {
-        return getShardForGuildId(id).getGuildById(id);
     }
 
     /**
@@ -467,6 +392,461 @@ public class ModularBot {
         return f("%s v%s #%s", config.getAppName(), config.getVersion().toString(), hashCode());
     }
 
+    @Override
+    public SelfUser getSelfUser() {
+        return getFirstShard().getSelfUser();
+    }
+
+    @Override
+    public Presence getPresence() {
+        return getFirstShard().getPresence();
+    }
+
+    @Override
+    public ShardInfo getShardInfo() {
+        return getFirstShard().getShardInfo();
+    }
+
+    @Override
+    public String getToken() {
+        return token;
+    }
+
+    @Override
+    public long getResponseTotal() {
+        return getFirstShard().getResponseTotal();
+    }
+
+    @Override
+    public int getMaxReconnectDelay() {
+        return getFirstShard().getMaxReconnectDelay();
+    }
+
+    @Override
+    public void setAutoReconnect(boolean reconnect) {
+        dispatchCommand(s -> setAutoReconnect(reconnect));
+    }
+
+    @Override
+    public void setRequestTimeoutRetry(boolean retryOnTimeout) {
+        dispatchCommand(s -> setRequestTimeoutRetry(retryOnTimeout));
+    }
+
+    @Override
+    public boolean isAutoReconnect() {
+        return getFirstShard().isAutoReconnect();
+    }
+
+    @Override
+    public boolean isAudioEnabled() {
+        return useAudio;
+    }
+
+    @Override
+    public boolean isBulkDeleteSplittingEnabled() {
+        return getFirstShard().isBulkDeleteSplittingEnabled();
+    }
+
+    @Override
+    public void shutdown() {
+        shutdown(false);
+    }
+
+    @Override
+    public void shutdownNow() {
+        shutdown(true);
+    }
+
+    @Override
+    public AccountType getAccountType() {
+        return AccountType.BOT;
+    }
+
+    @Override
+    public JDAClient asClient() {
+        return getFirstShard().asClient();
+    }
+
+    @Override
+    public JDABot asBot() {
+        return getFirstShard().asBot();
+    }
+
+    @Override
+    public Status getStatus() {
+        return getFirstShard().getStatus();
+    }
+
+    @Override
+    public long getPing() {
+        return (long) shards.stream()
+                .mapToLong(JDAImpl::getPing)
+                .average()
+                .orElse(getFirstShard().getPing());
+    }
+
+    @Override
+    public List<String> getCloudflareRays() {
+        return shards.stream()
+                .flatMap(s -> s.getCloudflareRays().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<String> getWebSocketTrace() {
+        return shards.stream()
+                .flatMap(s -> s.getWebSocketTrace().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void setEventManager(IEventManager manager) {
+        dispatchCommand(s -> s.setEventManager(manager));
+    }
+
+    @Override
+    public void addEventListener(Object... listeners) {
+        dispatchCommand(s -> s.addEventListener(listeners));
+    }
+
+    @Override
+    public void removeEventListener(Object... listeners) {
+        dispatchCommand(s -> s.removeEventListener(listeners));
+    }
+
+    @Override
+    public List<Object> getRegisteredListeners() {
+        return shards.stream()
+                .flatMap(s -> s.getRegisteredListeners().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public GuildAction createGuild(String name) {
+        return getFirstShard().createGuild(name);
+    }
+
+    @Override
+    public CacheView<AudioManager> getAudioManagerCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<AudioManager> getAudioManagers() {
+        return shards.stream()
+                .flatMap(s -> s.getAudioManagers().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public SnowflakeCacheView<User> getUserCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<User> getUsers() {
+        return shards.stream()
+                .flatMap(s -> s.getUsers().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<User> getUsersByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getUsersByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public User getUserById(long id) {
+        return shards.stream()
+                .map(s -> s.getUserById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public User getUserById(String id) {
+        return shards.stream()
+                .map(s -> s.getUserById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public RestAction<User> retrieveUserById(String id) {
+        return getFirstShard().retrieveUserById(id);
+    }
+
+    @Override
+    public RestAction<User> retrieveUserById(long id) {
+        return getFirstShard().retrieveUserById(id);
+    }
+
+    @Override
+    public List<Guild> getMutualGuilds(User... users) {
+        return shards.stream()
+                .flatMap(s -> s.getMutualGuilds(users).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Guild> getMutualGuilds(Collection<User> users) {
+        return shards.stream()
+                .flatMap(s -> s.getMutualGuilds(users).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public SnowflakeCacheView<Guild> getGuildCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<Guild> getGuilds() {
+        return shards.stream()
+                .flatMap(s -> s.getGuilds().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Guild> getGuildsByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getGuildsByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Guild getGuildById(String id) {
+        try {
+            return getGuildById(Long.parseLong(id));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
+    @Override
+    public Guild getGuildById(long id) {
+        return getShardForGuildId(id).getGuildById(id);
+    }
+
+    @Override
+    public SnowflakeCacheView<Role> getRoleCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<Role> getRoles() {
+        return shards.stream()
+                .flatMap(s -> s.getRoles().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Role> getRolesByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getRolesByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Role getRoleById(long id) {
+        return shards.stream()
+                .map(s -> s.getRoleById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public Role getRoleById(String id) {
+        return shards.stream()
+                .map(s -> s.getRoleById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public SnowflakeCacheView<Category> getCategoryCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<Category> getCategories() {
+        return shards.stream()
+                .flatMap(s -> s.getCategories().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Category> getCategoriesByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getCategoriesByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Category getCategoryById(long id) {
+        return shards.stream()
+                .map(s -> s.getCategoryById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public Category getCategoryById(String id) {
+        return shards.stream()
+                .map(s -> s.getCategoryById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public SnowflakeCacheView<TextChannel> getTextChannelCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<TextChannel> getTextChannels() {
+        return shards.stream()
+                .flatMap(s -> s.getTextChannels().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TextChannel> getTextChannelsByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getTextChannelsByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TextChannel getTextChannelById(long id) {
+        return shards.stream()
+                .map(s -> s.getTextChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public TextChannel getTextChannelById(String id) {
+        return shards.stream()
+                .map(s -> s.getTextChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public SnowflakeCacheView<VoiceChannel> getVoiceChannelCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<VoiceChannel> getVoiceChannels() {
+        return shards.stream()
+                .flatMap(s -> s.getVoiceChannels().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VoiceChannel> getVoiceChannelByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getVoiceChannelByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public VoiceChannel getVoiceChannelById(long id) {
+        return shards.stream()
+                .map(s -> s.getVoiceChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public VoiceChannel getVoiceChannelById(String id) {
+        return shards.stream()
+                .map(s -> s.getVoiceChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public SnowflakeCacheView<PrivateChannel> getPrivateChannelCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<PrivateChannel> getPrivateChannels() {
+        return shards.stream()
+                .flatMap(s -> s.getPrivateChannels().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public PrivateChannel getPrivateChannelById(long id) {
+        return shards.stream()
+                .map(s -> s.getPrivateChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public PrivateChannel getPrivateChannelById(String id) {
+        return shards.stream()
+                .map(s -> s.getPrivateChannelById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public SnowflakeCacheView<Emote> getEmoteCache() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<Emote> getEmotes() {
+        return shards.stream()
+                .flatMap(s -> s.getEmotes().stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Emote> getEmotesByName(String name, boolean ignoreCase) {
+        return shards.stream()
+                .flatMap(s -> s.getEmotesByName(name, ignoreCase).stream())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Emote getEmoteById(long id) {
+        return shards.stream()
+                .map(s -> s.getEmoteById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Override
+    public Emote getEmoteById(String id) {
+        return shards.stream()
+                .map(s -> s.getEmoteById(id))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
     /**
      * Get the current instance of {@link ModularBot}.
      * @return the instance of {@link ModularBot}.
@@ -489,7 +869,7 @@ public class ModularBot {
      * Check if the audio is enabled in this instance of ModularBot.
      * @return true if the audio is enabled, otherwise false.
      */
-    public static boolean isAudioEnabled() {
+    public static boolean useAudio() {
         return useAudio;
     }
 
@@ -519,6 +899,7 @@ public class ModularBot {
 
     /**
      * Get the decorator manager of the application.
+     * Used internally.
      * @return the {@link MessageDecoratorManager}.
      */
     public static MessageDecoratorManager getDecoratorManager() {

@@ -1,5 +1,6 @@
 package com.jesus_crie.modularbot.manager;
 
+import com.jesus_crie.modularbot.config.DecoratorCache;
 import com.jesus_crie.modularbot.exception.AlreadyExistingDecorator;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 
@@ -14,6 +15,19 @@ import java.util.concurrent.ScheduledExecutorService;
 public final class MessageDecoratorManager {
 
     private final ConcurrentHashMap<Long, ReactionDecorator> decorators = new ConcurrentHashMap<>();
+    private final DecoratorCache cache;
+
+    public MessageDecoratorManager(boolean saveDismissible) {
+        cache = new DecoratorCache(saveDismissible);
+    }
+
+    /**
+     * Get the decorator cache associated.
+     * @return the associated {@link DecoratorCache}.
+     */
+    public DecoratorCache getCache() {
+        return cache;
+    }
 
     /**
      * Used to register a decorator, automatically done when creating one.
@@ -26,11 +40,21 @@ public final class MessageDecoratorManager {
     }
 
     /**
-     * Unregister a decorator from the manager, automatically done in {@link ReactionDecorator#onDestroy()}.
+     * Unregister a decorator from the manager, automatically done in {@link ReactionDecorator#destroy(boolean)}.
      * @param decorator the decorator to unregister.
      */
     public void unregister(ReactionDecorator decorator) {
         decorators.remove(decorator.getMessage().getIdLong());
+        cache.uncacheDecorator(decorator);
+    }
+
+    /**
+     * Get the decorator corresponding to the given message.
+     * @param messageId the id of the message.
+     * @return the corresponding decorator.
+     */
+    public ReactionDecorator getDecoratorForMessage(long messageId) {
+        return decorators.getOrDefault(messageId, null);
     }
 
     /**
@@ -45,7 +69,7 @@ public final class MessageDecoratorManager {
      * Destroy all decorators in a blocking way.
      */
     public void destroyAll() {
-        decorators.forEach((id, dec) -> dec.onDestroy());
+        decorators.forEach((id, dec) -> dec.destroy(false));
     }
 
     /**
@@ -62,13 +86,13 @@ public final class MessageDecoratorManager {
             pool.execute(() -> values.stream()
                     .skip(toSkip)
                     .limit(decoratorPerThread)
-                    .forEach(ReactionDecorator::onDestroy));
+                    .forEach(d -> d.destroy(false)));
         }
 
         // if not every decorator has been destroyed
         if (values.stream().skip(decoratorPerThread * threadCount).count() > 0)
             values.stream()
                 .skip(decoratorPerThread * threadCount)
-                .forEach(ReactionDecorator::onDestroy);
+                .forEach(d -> d.destroy(false));
     }
 }

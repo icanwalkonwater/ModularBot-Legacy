@@ -110,13 +110,11 @@ public class ModularBuilder {
     }
 
     /**
-     * TODO - Work in progress
-     *
-     * Allow Modular to save decorated message to be able to restore them after a restart.
+     * Allow Modular to save dismissible decorators to resume them after a restart.
      * Useful for panel messages or polls.
      * @return the current builder.
      */
-    private ModularBuilder useDecoratorCache() {
+    public ModularBuilder useDecoratorCacheForDismissible() {
         useDecoratorCache = true;
         return this;
     }

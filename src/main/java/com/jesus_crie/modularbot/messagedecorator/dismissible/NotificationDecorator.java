@@ -1,5 +1,9 @@
 package com.jesus_crie.modularbot.messagedecorator.dismissible;
 
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.SerializerProvider;
+import com.jesus_crie.modularbot.messagedecorator.Cacheable;
 import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.sharding.ModularShard;
@@ -9,52 +13,58 @@ import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
-public class NotificationDecorator extends DismissibleDecorator {
+import java.io.IOException;
+
+public class NotificationDecorator extends DismissibleDecorator implements Cacheable {
 
     /**
      * The {@link ReactionButton} used to dismiss a notification.
      * The emote used is "❌"
      */
-    private static final ReactionButton DISMISS_BUTTON = new ReactionButton("\u274C", (event, decorator) -> ((DismissibleDecorator) decorator).onDismiss());
+    protected static final ReactionButton DISMISS_BUTTON = new ReactionButton("\u274C", (event, decorator) -> ((DismissibleDecorator) decorator).dismiss());
 
     /**
      * Main constructor.
      * See {@link NotificationBuilder} for more details.
      */
-    private NotificationDecorator(Message bind, User target, long timeout) {
-        super(bind, target, DISMISS_BUTTON);
+    protected NotificationDecorator(Message bind, User target, long timeout, boolean resumed) {
+        super(bind, target, timeout, resumed, DISMISS_BUTTON);
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
-                e -> e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::onClick, this::onDestroy,
+                e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
+                this::click, () -> destroy(true),
                 timeout, true);
+
+        if (callback != null) callback.onReady(this);
+    }
+
+    // Serialization stuff
+
+    /**
+     * Deserializer.
+     * @param message the source message.
+     * @param node the content node.
+     */
+    protected NotificationDecorator(Message message, JsonNode node) {
+        this(message,
+                message.getJDA().getUserById(node.get("user_target").asLong()),
+                node.get("expire_at").asLong() - System.currentTimeMillis(),
+                true);
+    }
+
+    @Override
+    public void serialize(JsonGenerator gen, SerializerProvider provider) throws IOException {
+        gen.writeNumberField("user_target", target.getIdLong());
+        gen.writeNumberField("expire_at", getExpireTime());
     }
 
     /**
-     * Builder for notifications.
+     * The builder for this decorator
      */
-    public static final class NotificationBuilder extends ReactionDecoratorBuilder<NotificationBuilder, NotificationDecorator> {
+    public static final class NotificationBuilder extends ReactionDecoratorBuilder.DecoratorTargetBuilder<NotificationBuilder, NotificationDecorator> {
 
         private long timeout = 0;
-        private final User target;
-
-        /**
-         * Main constructor of this builder.
-         * @param bind the message to bind to.
-         * @param target the targeted user.
-         */
-        public NotificationBuilder(Message bind, User target) {
-            super(bind);
-            Checks.notNull(target, "target");
-            this.target = target;
-        }
-
-        /**
-         * Not used here.
-         */
-        @Override
-        protected final NotificationBuilder targetUser(User target) { return this; }
 
         /**
          * Used to add a timeout to the notification.
@@ -65,7 +75,9 @@ public class NotificationDecorator extends DismissibleDecorator {
          */
         @Override
         public NotificationBuilder useTimeout(long timeout) {
-            this.timeout = timeout;
+            if (timeout == -1) return this;
+            else if (timeout <= 0) this.timeout = 0;
+            else this.timeout = timeout;
             return this;
         }
 
@@ -74,8 +86,10 @@ public class NotificationDecorator extends DismissibleDecorator {
          * @return a new {@link NotificationDecorator}.
          */
         @Override
-        public NotificationDecorator build() {
-            return new NotificationDecorator(bind, target, timeout);
+        public NotificationDecorator bindAndBuild(Message bind, User target) {
+            Checks.notNull(bind, "message");
+            Checks.notNull(target, "target");
+            return new NotificationDecorator(bind, target, timeout, false);
         }
     }
 }

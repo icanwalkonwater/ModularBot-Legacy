@@ -4,9 +4,11 @@ import com.jesus_crie.modularbot.messagedecorator.ReactionButton;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 import net.dv8tion.jda.core.entities.Message;
 import net.dv8tion.jda.core.entities.User;
+import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 
 /**
  * A decorator that can delete the attached message.
+ * This decorator is specific for one user.
  */
 public abstract class DismissibleDecorator extends ReactionDecorator {
 
@@ -15,22 +17,26 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
      * @param bind the message to bind to.
      * @param target the targeted user.
      * @param buttons the other buttons.
+     * @param timeout the timeout.
+     * @param resumed if the decorator is being deserialized.
      */
-    protected DismissibleDecorator(Message bind, User target, ReactionButton... buttons) {
-        super(bind, target, buttons);
+    protected DismissibleDecorator(Message bind, User target, long timeout, boolean resumed, ReactionButton... buttons) {
+        super(bind, target, timeout, resumed, buttons);
     }
 
     @Override
-    public final void onDestroy() {
-        super.onDestroy();
-        listener.cancel(true);
+    protected ReactionButton click(MessageReactionAddEvent event) {
+        ReactionButton button = super.click(event);
+        if (button != null) button.onClick(event, this);
+        return button;
     }
 
     /**
      * Delete the attached message and destroy the decorator.
      */
-    protected final void onDismiss() {
-        onDestroy();
+    protected final void dismiss() {
+        if (callback != null && callback.onDismiss(this)) return;
+        destroy(false);
         bindTo.delete().complete();
     }
 }

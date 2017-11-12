@@ -1,6 +1,9 @@
 package com.jesus_crie.modularbot.messagedecorator;
 
 import com.jesus_crie.modularbot.utils.MiscUtils;
+import net.dv8tion.jda.core.entities.Emote;
+import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.core.utils.Checks;
 
@@ -8,7 +11,10 @@ import java.util.function.BiConsumer;
 
 public class ReactionButton {
 
-    private final String unicode;
+    protected static final OnReactionListener EMPTY_LISTENER = (e, d) -> {};
+
+    private String unicode;
+    private Emote emote;
     private final OnReactionListener action;
 
     /**
@@ -25,11 +31,37 @@ public class ReactionButton {
     }
 
     /**
+     * Create a new button.
+     * @param emote the custom {@link Emote} that will be used.
+     * @param action the action that will be performed.
+     */
+    public ReactionButton(Emote emote, OnReactionListener action) {
+        Checks.notNull(action, "action");
+        Checks.notNull(emote, "emote");
+
+        this.emote = emote;
+        this.action = action;
+    }
+
+    /**
      * Get the unicode string corresponding to the emote.
      * @return a string representing the emote that will be used.
      */
-    public String getUnicode() {
-        return unicode;
+    public String getEmoteString() {
+        return isCustomEmote() ? emote.getId() : unicode;
+    }
+
+    public boolean isCustomEmote() {
+        return unicode == null;
+    }
+
+    public void setupEmote(Message message) {
+        if (unicode == null) message.addReaction(emote).complete();
+        else message.addReaction(unicode).complete();
+    }
+
+    public boolean checkEmote(MessageReaction.ReactionEmote emote) {
+        return isCustomEmote() ? emote.getEmote().getIdLong() == this.emote.getIdLong() : emote.getName().equals(unicode);
     }
 
     /**

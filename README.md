@@ -1,5 +1,5 @@
 [![Download](https://api.bintray.com/packages/spacecookie/generic/modularbot/images/download.svg)](https://bintray.com/spacecookie/generic/modularbot/_latestVersion)
-[![JDA Version](https://img.shields.io/badge/JDA-3.3.1__300-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
+[![JDA Version](https://img.shields.io/badge/JDA-3.3.1__303-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
 [![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.44-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
 
 # ModularBot framework
@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.jesus_crie:modularbot:1.2.1'
+    compile 'com.jesus_crie:modularbot:1.3.0'
 }
 ```
 

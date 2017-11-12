@@ -1,12 +1,7 @@
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class T {
 
     public static void main(String[] args) {
-        ObjectMapper mapper = new ObjectMapper();
-        JsonNode node;
-        //node.get("boolField").asBoolean();
+        TestSub test = new TestSub();
     }
 
     public static void test() throws RuntimeException {
@@ -19,11 +14,17 @@ public class T {
 
         public Test(final boolean y) {
             i = y;
+            print("Yo");
+            throw new RuntimeException();
         }
 
-        @SuppressWarnings("SimplifiableConditionalExpression")
-        public boolean test(Integer i, Integer y) {
-            return this.i && i == null ? false : y.equals(50);
+    }
+
+    public static class TestSub extends Test {
+
+        public TestSub() {
+            super(true);
+            print("Hey");
         }
     }
 
