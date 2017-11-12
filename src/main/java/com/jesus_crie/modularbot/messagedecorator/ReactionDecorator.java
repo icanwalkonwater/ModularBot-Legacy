@@ -6,9 +6,11 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.fasterxml.jackson.databind.ser.std.StdSerializer;
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.config.DecoratorCache;
-import com.jesus_crie.modularbot.exception.InvalidTimeoutException;
+import com.jesus_crie.modularbot.exception.InvalidCachedDecorator;
 import com.jesus_crie.modularbot.listener.WaiterListener;
+import com.jesus_crie.modularbot.utils.MiscUtils;
 import net.dv8tion.jda.core.entities.Message;
+import net.dv8tion.jda.core.entities.MessageReaction;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.events.message.react.GenericMessageReactionEvent;
 import net.dv8tion.jda.core.events.message.react.MessageReactionAddEvent;
@@ -17,6 +19,8 @@ import net.dv8tion.jda.core.utils.Checks;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Base code for any message decorator.
@@ -38,18 +42,30 @@ public abstract class ReactionDecorator {
      * Create a new decorator with some buttons and automatically register it.
      * @param bind the message to bind to.
      * @param target the targeted user.
+     * @param timeout the timeout.
+     * @param resumed if the decorator to create is being deserialized.
      * @param buttons the buttons to add to the decorator.
-     * @throws InvalidTimeoutException when the timeout is < 0.
+     * @throws InvalidCachedDecorator when the timeout is < 0.
      */
-    protected ReactionDecorator(Message bind, User target, long timeout, ReactionButton... buttons) {
+    protected ReactionDecorator(Message bind, User target, long timeout, boolean resumed, ReactionButton... buttons) {
         Checks.notNull(bind, "message");
-        if (!checkTimeout(timeout)) throw new InvalidTimeoutException("Invalid timeout: " + timeout + " !");
-
         bindTo = bind;
         this.target = target;
         this.timeout = timeout;
+
+        if (!checkTimeout(timeout)) {
+            destroy(true);
+            throw new InvalidCachedDecorator(this, "Invalid timeout: " + timeout + " !");
+        }
+
+        List<String> self = null;
+        if (resumed) self = bind.getReactions().stream() // Get our emotes to gain time on already existing emotes. (several seconds)
+                .filter(MessageReaction::isSelf)
+                .map(r -> MiscUtils.stringifyEmote(r.getReactionEmote()))
+                .collect(Collectors.toList());
         for (ReactionButton button : buttons) {
             this.buttons.put(button.getEmoteString(), button);
+            if (resumed && self.contains(button.getEmoteString())) continue;
             button.setupEmote(bind);
         }
         updateMessage();
@@ -61,7 +77,7 @@ public abstract class ReactionDecorator {
     /**
      * Used to check if the timeout is valid.
      * @param timeout the timeout in millisecond.
-     * @return true if everything is ok otherwise false and a {@link InvalidTimeoutException} will be raised.
+     * @return true if everything is ok otherwise false and a {@link InvalidCachedDecorator} will be raised.
      */
     protected boolean checkTimeout(long timeout) {
         return timeout >= 0 && isAlive;
@@ -103,6 +119,7 @@ public abstract class ReactionDecorator {
 
     /**
      * Attach a {@link DecoratorListener} to this decorator.
+     * WARNING, this listener will not be resumed after a restart if the decorator is cached.
      * @param listener the listener to attach.
      */
     public void setListener(DecoratorListener listener) {
@@ -130,7 +147,7 @@ public abstract class ReactionDecorator {
         try {
             bindTo = bindTo.getChannel().getMessageById(bindTo.getIdLong()).complete();
         } catch (ErrorResponseException e) {
-            if (isAlive) destroy();
+            if (isAlive) destroy(false);
         }
         return bindTo;
     }
@@ -153,16 +170,15 @@ public abstract class ReactionDecorator {
     /**
      * Called when the decorator is destroyed, this happens when the bot is stopping,
      * when the message is deleted or when the message is dismissed.
+     * If the decorator has timed out or if it's not being cached, reactions are deleted.
+     * @param timedOut if the decorator has timed out to reach this method.
      */
-    public void destroy() {
-        //updateMessage();
+    public void destroy(boolean timedOut) {
         isAlive = false;
         if (callback != null) callback.onDestroy(this);
         ModularBot.getDecoratorManager().unregister(this);
-        /*if (bindTo != null) bindTo.getReactions().stream()
-                .filter(MessageReaction::isSelf)
-                .forEach(r -> r.removeReaction(bindTo.getJDA().getSelfUser()).complete());*/
         listener.cancel(true);
+        if (timedOut || !ModularBot.getDecoratorManager().getCache().isCached(this)) bindTo.clearReactions().complete();
     }
 
     /**

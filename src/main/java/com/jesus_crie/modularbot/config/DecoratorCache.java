@@ -80,6 +80,10 @@ public class DecoratorCache {
         decorators.remove(decorator);
     }
 
+    public boolean isCached(ReactionDecorator decorator) {
+        return decorators.contains(decorator);
+    }
+
     /**
      * Save the cache to the config file.
      * Save only the decorators who will stand more than 10 seconds.

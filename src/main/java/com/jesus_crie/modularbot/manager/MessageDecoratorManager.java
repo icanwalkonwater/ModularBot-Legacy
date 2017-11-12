@@ -40,7 +40,7 @@ public final class MessageDecoratorManager {
     }
 
     /**
-     * Unregister a decorator from the manager, automatically done in {@link ReactionDecorator#destroy()}.
+     * Unregister a decorator from the manager, automatically done in {@link ReactionDecorator#destroy(boolean)}.
      * @param decorator the decorator to unregister.
      */
     public void unregister(ReactionDecorator decorator) {
@@ -69,7 +69,7 @@ public final class MessageDecoratorManager {
      * Destroy all decorators in a blocking way.
      */
     public void destroyAll() {
-        decorators.forEach((id, dec) -> dec.destroy());
+        decorators.forEach((id, dec) -> dec.destroy(false));
     }
 
     /**
@@ -86,13 +86,13 @@ public final class MessageDecoratorManager {
             pool.execute(() -> values.stream()
                     .skip(toSkip)
                     .limit(decoratorPerThread)
-                    .forEach(ReactionDecorator::destroy));
+                    .forEach(d -> d.destroy(false)));
         }
 
         // if not every decorator has been destroyed
         if (values.stream().skip(decoratorPerThread * threadCount).count() > 0)
             values.stream()
                 .skip(decoratorPerThread * threadCount)
-                .forEach(ReactionDecorator::destroy);
+                .forEach(d -> d.destroy(false));
     }
 }

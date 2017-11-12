@@ -24,23 +24,37 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.StreamSupport;
 
+/**
+ * A decorator that create a poll where users can vote.
+ * Persistent by default.
+ */
 public class PollDecorator extends PersistentDecorator implements Cacheable {
 
     protected final ConcurrentHashMap<String, Integer> votes = new ConcurrentHashMap<>();
 
-    protected PollDecorator(Message bind, long timeout, PollButton... buttons) {
-        super(bind, timeout, buttons);
+    /**
+     * Main constructor.
+     * @see com.jesus_crie.modularbot.messagedecorator.persistant.PersistentDecorator#PersistentDecorator(Message, long, boolean, ReactionButton...)
+     */
+    protected PollDecorator(Message bind, long timeout, boolean resumed, PollButton... buttons) {
+        super(bind, timeout, resumed, buttons);
 
         for (Map.Entry<String, ReactionButton> entry : super.buttons.entrySet())
             votes.put(entry.getKey(), 0);
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()), GenericMessageReactionEvent.class,
                 e -> isAlive && e.getMessageIdLong() == bindTo.getIdLong(),
-                this::onVote, this::destroy,
+                this::vote, () -> destroy(true),
                 timeout, false);
+
+        if (callback != null) callback.onReady(this);
     }
 
-    protected void onVote(GenericMessageReactionEvent event) {
+    /**
+     * Triggered when a reaction is added or removed.
+     * @param event the event.
+     */
+    protected void vote(GenericMessageReactionEvent event) {
         String emote = MiscUtils.stringifyEmote(event.getReactionEmote());
         if (votes.containsKey(emote)) {
             int add;
@@ -52,15 +66,23 @@ public class PollDecorator extends PersistentDecorator implements Cacheable {
         }
     }
 
+    /**
+     * Get an unmodifiable copy of the votes.
+     * @return a copy of the actual votes.
+     */
     public Map<String, Integer> getVotes() {
         return Collections.unmodifiableMap(votes);
     }
 
     // Serialization stuff
 
+    /**
+     * Constructor used to deserialize this decorator.
+     */
     protected PollDecorator(Message bind, JsonNode node) {
         this(bind,
                 node.get("expire_at").asLong() == 0 ? 0 : node.get("expire_at").asLong() - System.currentTimeMillis(),
+                true,
                 StreamSupport.stream(node.get("votes").spliterator(), false)
                         .map(n -> n.get("is_emote").asBoolean() ? new PollButton(bind.getJDA().getEmoteById(n.get("value").asText()))
                                                                 : new PollButton(n.get("value").asText()))
@@ -85,6 +107,9 @@ public class PollDecorator extends PersistentDecorator implements Cacheable {
         gen.writeEndArray();
     }
 
+    /**
+     * Represent the button of a poll (with an empty listener).
+     */
     public static final class PollButton extends ReactionButton {
 
         public PollButton(String unicode) {
@@ -96,40 +121,72 @@ public class PollDecorator extends PersistentDecorator implements Cacheable {
         }
     }
 
+    /**
+     * The builder of this decorator.
+     */
     public static final class PollBuilder extends ReactionDecoratorBuilder.DecoratorGlobalBuilder<PollBuilder, PollDecorator> {
 
         protected long timeout = 0;
         protected final List<PollButton> choices = new ArrayList<>();
 
+        /**
+         * Add a choice to this poll with a unicode emote.
+         * @param unicode the unicode emote.
+         * @return the current builder.
+         */
         public PollBuilder addChoice(String unicode) {
             choices.add(new PollButton(unicode));
             return this;
         }
 
+        /**
+         * Add a custom emote to this poll.
+         * @param emote the guild emote.
+         * @return the current builder.
+         */
         public PollBuilder addChoice(Emote emote) {
             choices.add(new PollButton(emote));
             return this;
         }
 
+        /**
+         * Add multiples unicode emotes to this poll.
+         * @param unicodes the emotes.
+         * @return the current builder.
+         */
         public PollBuilder addChoices(String... unicodes) {
             for (String unicode : unicodes) addChoice(unicode);
             return this;
         }
 
+        /**
+         * Add multiple guild emotes to this poll.
+         * @param emotes the guild emotes.
+         * @return the current builder.
+         */
         public PollBuilder addChoices(Emote... emotes) {
             for (Emote emote : emotes) addChoice(emote);
             return this;
         }
 
+        /**
+         * @see ReactionDecoratorBuilder#useTimeout(long)
+         */
         @Override
         public PollBuilder useTimeout(long timeout) {
             this.timeout = timeout;
             return this;
         }
 
+        /**
+         * Create a new instance of {@link PollDecorator} with the given message and the
+         * stored parameters.
+         * @param bind the targeted message.
+         * @return a new instance of {@link PollDecorator}.
+         */
         @Override
         public PollDecorator bindAndBuild(Message bind) {
-            return new PollDecorator(bind, timeout, choices.toArray(new PollButton[choices.size()]));
+            return new PollDecorator(bind, timeout, false, choices.toArray(new PollButton[choices.size()]));
         }
     }
 }

@@ -222,6 +222,7 @@ public class ModularBot implements JDA {
                     .setAutoReconnect(true)
                     .setAudioEnabled(useAudio)
                     .setEventManager(new ModularEventManager())
+                    .setBulkDeleteSplittingEnabled(false)
                     .setIdle(false)
                     .setGame(com.jesus_crie.modularbot.utils.Status.STARTING);
         }

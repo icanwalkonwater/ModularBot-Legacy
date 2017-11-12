@@ -33,13 +33,15 @@ public class DialogDecorator extends DismissibleDecorator {
      * See {@link DialogBuilder} for more details.
      */
     protected DialogDecorator(Message bind, User target, long timeout) {
-        super(bind, target, timeout, ACCEPT_BUTTON, DENY_BUTTON);
+        super(bind, target, timeout, false, ACCEPT_BUTTON, DENY_BUTTON);
         completable = new CompletableFuture();
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()), MessageReactionAddEvent.class,
                 e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
                 this::click, () -> onTrigger(null),
                 timeout, true);
+
+        if (super.callback != null) super.callback.onReady(this);
     }
 
     /**
@@ -47,7 +49,7 @@ public class DialogDecorator extends DismissibleDecorator {
      * @param res the result, true/false if the dialog has been triggered otherwise null.
      */
     protected void onTrigger(Boolean res) {
-        if (res == null) destroy();
+        if (res == null) destroy(true);
         else dismiss();
         completable.complete(res);
         if (callback != null) callback.accept(res);
@@ -70,6 +72,9 @@ public class DialogDecorator extends DismissibleDecorator {
         return completable.get();
     }
 
+    /**
+     * An {@link IgnoreCompletableFuture} for booleans.
+     */
     private static class CompletableFuture extends IgnoreCompletableFuture<Boolean> {}
 
     /**

@@ -6,6 +6,7 @@ import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
 import com.jesus_crie.modularbot.messagedecorator.DecoratorListener;
+import com.jesus_crie.modularbot.messagedecorator.ReactionDecorator;
 import com.jesus_crie.modularbot.messagedecorator.ReactionDecoratorBuilder;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.DialogDecorator;
 import com.jesus_crie.modularbot.messagedecorator.dismissible.NotificationDecorator;
@@ -146,11 +147,21 @@ public class TestBot {
                     event.fastReply(voter.getName() + (isVote ? " has voted " : " has removed his vote ") + MiscUtils.stringifyEmote(emote));
                     return false;
                 }
+
+                @Override
+                public void onReady(ReactionDecorator decorator) {
+                    event.fastReply(((PollDecorator) decorator).getVotes().toString());
+                }
+
+                @Override
+                public void onDestroy(ReactionDecorator decorator) {
+                    event.fastReply(((PollDecorator) decorator).getVotes().toString());
+                }
             };
 
             Message poll = event.getChannel().sendMessage(new EmbedBuilder().setTitle("Imma cool poll !").build()).complete();
             PollDecorator decorator = ReactionDecoratorBuilder.newPoll()
-                    .useTimeout(60000L)
+                    .useTimeout(5000L)
                     .addChoice("\uD83D\uDC19") // Octopus
                     .addChoice("\uD83C\uDF46") // Aubergine
                     .addChoice("\uD83C\uDF6A") // Cookie

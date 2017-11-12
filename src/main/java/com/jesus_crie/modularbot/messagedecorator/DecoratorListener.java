@@ -12,6 +12,12 @@ import net.dv8tion.jda.core.entities.User;
 public interface DecoratorListener {
 
     /**
+     * When the decorator is ready to get inputs.
+     * @param decorator the targeted decorator.
+     */
+    default void onReady(ReactionDecorator decorator) {}
+
+    /**
      * When a button is clicked.
      * @param decorator the targeted decorator.
      * @param button the button that has been clicked.

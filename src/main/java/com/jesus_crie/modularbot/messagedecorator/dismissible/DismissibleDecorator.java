@@ -17,9 +17,11 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
      * @param bind the message to bind to.
      * @param target the targeted user.
      * @param buttons the other buttons.
+     * @param timeout the timeout.
+     * @param resumed if the decorator is being deserialized.
      */
-    protected DismissibleDecorator(Message bind, User target, long timeout, ReactionButton... buttons) {
-        super(bind, target, timeout, buttons);
+    protected DismissibleDecorator(Message bind, User target, long timeout, boolean resumed, ReactionButton... buttons) {
+        super(bind, target, timeout, resumed, buttons);
     }
 
     @Override
@@ -34,7 +36,7 @@ public abstract class DismissibleDecorator extends ReactionDecorator {
      */
     protected final void dismiss() {
         if (callback != null && callback.onDismiss(this)) return;
-        destroy();
+        destroy(false);
         bindTo.delete().complete();
     }
 }

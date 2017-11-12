@@ -27,14 +27,16 @@ public class NotificationDecorator extends DismissibleDecorator implements Cache
      * Main constructor.
      * See {@link NotificationBuilder} for more details.
      */
-    protected NotificationDecorator(Message bind, User target, long timeout) {
-        super(bind, target, timeout, DISMISS_BUTTON);
+    protected NotificationDecorator(Message bind, User target, long timeout, boolean resumed) {
+        super(bind, target, timeout, resumed, DISMISS_BUTTON);
 
         listener = Waiter.createListener(((ModularShard) bind.getJDA()),
                 MessageReactionAddEvent.class,
                 e -> isAlive && e.getMessageIdLong() == bind.getIdLong() && e.getUser().equals(target),
-                this::click, this::destroy,
+                this::click, () -> destroy(true),
                 timeout, true);
+
+        if (callback != null) callback.onReady(this);
     }
 
     // Serialization stuff
@@ -47,7 +49,8 @@ public class NotificationDecorator extends DismissibleDecorator implements Cache
     protected NotificationDecorator(Message message, JsonNode node) {
         this(message,
                 message.getJDA().getUserById(node.get("user_target").asLong()),
-                node.get("expire_at").asLong() - System.currentTimeMillis());
+                node.get("expire_at").asLong() - System.currentTimeMillis(),
+                true);
     }
 
     @Override
@@ -86,7 +89,7 @@ public class NotificationDecorator extends DismissibleDecorator implements Cache
         public NotificationDecorator bindAndBuild(Message bind, User target) {
             Checks.notNull(bind, "message");
             Checks.notNull(target, "target");
-            return new NotificationDecorator(bind, target, timeout);
+            return new NotificationDecorator(bind, target, timeout, false);
         }
     }
 }
