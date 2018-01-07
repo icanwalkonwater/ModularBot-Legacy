@@ -8,19 +8,24 @@ import com.jesus_crie.modularbot.stats.Stats;
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
-public class CommandListener extends ListenerAdapter {
+/**
+ * Listen for message event and determine if it's a command and handle it.
+ */
+public final class CommandListener extends ListenerAdapter {
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
-        // Check if message start with the command prefix.
-        if (!event.getMessage().getRawContent().startsWith(ModularBot.getConfig().getPrefixForGuild(event.getGuild())))
-            return;
-
+    public final void onMessageReceived(MessageReceivedEvent event) {
         // Check if is self message.
         if (event.getAuthor().equals(event.getJDA().getSelfUser()))
             return;
 
-        final String[] fullCommand = event.getMessage().getRawContent().substring(ModularBot.getConfig().getPrefixForGuild(event.getGuild()).length()).split(" ");
+        final String prefix = ModularBot.getConfig().getPrefixForGuild(event.getGuild());
+
+        // Check if message start with the command prefix.
+        if (!event.getMessage().getContentRaw().startsWith(prefix))
+            return;
+
+        final String[] fullCommand = event.getMessage().getContentRaw().substring(prefix.length()).split(" ");
         final Command command = ModularBot.getCommandManager().getCommand(fullCommand[0]);
 
         if (command == null) {

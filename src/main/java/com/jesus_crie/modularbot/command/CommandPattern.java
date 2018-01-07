@@ -39,8 +39,16 @@ public class CommandPattern {
         this(args, (e, a) -> action.accept(e));
     }
 
-    public boolean noArgument() {
-        return arguments.isEmpty();
+    public boolean hasArguments() {
+        return !arguments.isEmpty();
+    }
+
+    /**
+     * Get a copy of all of the arguments of the pattern.
+     * @return a unmodifiable copy of the arguments.
+     */
+    public List<Argument> getArguments() {
+        return Collections.unmodifiableList(arguments);
     }
 
     /**
@@ -51,7 +59,7 @@ public class CommandPattern {
     public boolean matchArgs(String[] args) {
         Checks.notNull(args, "args");
 
-        if (noArgument())
+        if (!hasArguments())
             return args.length <= 0;
 
         if (args.length < arguments.size())
@@ -82,7 +90,7 @@ public class CommandPattern {
      * @return a list of objects.
      */
     private List<Object> collectArgs(ModularShard shard, String[] args) {
-        if (noArgument())
+        if (!hasArguments())
             return null;
 
         List<Object> out = new ArrayList<>();

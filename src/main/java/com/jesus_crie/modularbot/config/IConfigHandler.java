@@ -4,7 +4,7 @@ import net.dv8tion.jda.core.entities.Guild;
 
 import java.io.IOException;
 
-public interface ConfigHandler {
+public interface IConfigHandler {
 
     /**
      * Get a {@link Version} that represent the version of the application.

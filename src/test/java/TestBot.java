@@ -1,7 +1,7 @@
 import com.jesus_crie.modularbot.ModularBot;
 import com.jesus_crie.modularbot.ModularBuilder;
 import com.jesus_crie.modularbot.command.*;
-import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.config.IConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
@@ -29,7 +29,7 @@ import java.util.List;
 public class TestBot {
 
     public static void main(String[] args) {
-        ConfigHandler config = new SimpleConfig("./config.json", Version.of(1, 0, 0, 0), "TestModular");
+        IConfigHandler config = new SimpleConfig("./config.json", Version.of(1, 0, 0, 0), "TestModular");
 
         ModularBot bot = new ModularBuilder(args[0])
                 .useStats()

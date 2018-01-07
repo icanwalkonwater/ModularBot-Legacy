@@ -18,7 +18,7 @@ import java.util.concurrent.TimeUnit;
  * A simple config wrapper that load config from a file called "config.json" using an {@link ObjectMapper}.
  * It can store any object but for complex object it's better to use the Jackson Databind serialization system with {@link com.fasterxml.jackson.databind.ser.std.StdSerializer}.
  */
-public class SimpleConfig implements ConfigHandler {
+public class SimpleConfig implements IConfigHandler {
 
     protected static final ObjectMapper mapper = new ObjectMapper();
 
@@ -34,7 +34,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#getVersion()
+     * @see IConfigHandler#getVersion()
      */
     @Override
     public Version getVersion() {
@@ -42,7 +42,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#getPrefixForGuild(Guild)
+     * @see IConfigHandler#getPrefixForGuild(Guild)
      */
     @Override
     public String getPrefixForGuild(Guild g) {
@@ -50,7 +50,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#getAppName()
+     * @see IConfigHandler#getAppName()
      */
     @Override
     public String getAppName() {
@@ -60,7 +60,7 @@ public class SimpleConfig implements ConfigHandler {
     /**
      * My personal Id.
      * I recommend to override this.
-     * @see ConfigHandler#getCreatorId()
+     * @see IConfigHandler#getCreatorId()
      */
     @Override
     public long getCreatorId() {
@@ -114,7 +114,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#load()
+     * @see IConfigHandler#load()
      */
     @Override
     public void load() throws IOException {
@@ -125,7 +125,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#save()
+     * @see IConfigHandler#save()
      */
     @Override
     public void save() throws IOException {
@@ -133,7 +133,7 @@ public class SimpleConfig implements ConfigHandler {
     }
 
     /**
-     * @see ConfigHandler#startAutoSave()
+     * @see IConfigHandler#startAutoSave()
      */
     @Override
     public void startAutoSave() {

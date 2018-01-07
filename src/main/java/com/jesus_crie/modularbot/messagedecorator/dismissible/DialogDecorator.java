@@ -18,12 +18,12 @@ public class DialogDecorator extends DismissibleDecorator {
      * The button used to confirm.
      * The emote used is "✅".
      */
-    protected static ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
+    protected static final ReactionButton ACCEPT_BUTTON = new ReactionButton("\u2705", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(true));
     /**
      * The button used to deny.
      * The emote used is "❎".
      */
-    protected static ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
+    protected static final ReactionButton DENY_BUTTON = new ReactionButton("\u274E", (event, decorator) -> ((DialogDecorator) decorator).onTrigger(false));
 
     protected final CompletableFuture completable;
     protected Consumer<Boolean> callback;

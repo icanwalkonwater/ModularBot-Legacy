@@ -1,8 +1,7 @@
 package com.jesus_crie.modularbot;
 
-import com.jesus_crie.modularbot.config.ConfigHandler;
-import com.jesus_crie.modularbot.listener.ModularCommandListener;
-import com.jesus_crie.modularbot.log.JDALogger;
+import com.jesus_crie.modularbot.config.IConfigHandler;
+import com.jesus_crie.modularbot.listener.ICommandHandler;
 import com.jesus_crie.modularbot.log.LogHandler;
 import com.jesus_crie.modularbot.manager.CommandManager;
 import com.jesus_crie.modularbot.manager.MessageDecoratorManager;
@@ -25,7 +24,6 @@ import net.dv8tion.jda.core.managers.Presence;
 import net.dv8tion.jda.core.requests.RestAction;
 import net.dv8tion.jda.core.requests.restaction.GuildAction;
 import net.dv8tion.jda.core.utils.Checks;
-import net.dv8tion.jda.core.utils.SimpleLog;
 import net.dv8tion.jda.core.utils.cache.CacheView;
 import net.dv8tion.jda.core.utils.cache.SnowflakeCacheView;
 import net.dv8tion.jda.webhook.WebhookClient;
@@ -64,7 +62,7 @@ public class ModularBot implements JDA {
     private int maxShard;
     private final Game readyStatus;
 
-    private final ConfigHandler config;
+    private final IConfigHandler config;
     private final CommandManager commandManager;
     private final List<ModularShard> shards;
 
@@ -78,15 +76,15 @@ public class ModularBot implements JDA {
     /**
      * Package-Private builder.
      * @param token the token provided.
-     * @param config a custom {@link ConfigHandler}.
+     * @param config a custom {@link IConfigHandler}.
      * @param logger a custom {@link LogHandler}.
-     * @param command a custom {@link ModularCommandListener}.
+     * @param command a custom {@link ICommandHandler}.
      * @param readyStatus the status to be displayed when the bot is fully operational.
      * @param useAudio if the audio must be enabled.
      * @param cacheDismissible if the dismissible decorators can be cached.
      * @param useWebhook if you want to use the webhooks in your application.
      */
-    ModularBot(String token, ConfigHandler config, LogHandler logger, ModularCommandListener command, Game readyStatus, boolean useAudio, boolean cacheDismissible, boolean useWebhook) {
+    ModularBot(String token, IConfigHandler config, LogHandler logger, ICommandHandler command, Game readyStatus, boolean useAudio, boolean cacheDismissible, boolean useWebhook) {
         Thread.currentThread().setName(f("%s Main", config.getAppName(), Thread.currentThread().getId()));
 
         mightyPool = (ScheduledThreadPoolExecutor) Executors.newScheduledThreadPool(0, r -> {
@@ -108,7 +106,7 @@ public class ModularBot implements JDA {
         instance = this;
         shards = new ArrayList<>();
         ModularBot.logger = logger;
-        SimpleLog.addListener(new JDALogger());
+        //SimpleLog.addListener(new JDALogger());
         logger.info("Start", "LogHandler initialized !");
 
         this.token = token;
@@ -883,9 +881,9 @@ public class ModularBot implements JDA {
 
     /**
      * Get the config handler of the application.
-     * @return an implementation of {@link ConfigHandler} that is currently used by the application.
+     * @return an implementation of {@link IConfigHandler} that is currently used by the application.
      */
-    public static ConfigHandler getConfig() {
+    public static IConfigHandler getConfig() {
         return instance.config;
     }
 

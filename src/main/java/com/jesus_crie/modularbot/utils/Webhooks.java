@@ -3,7 +3,6 @@ package com.jesus_crie.modularbot.utils;
 import com.jesus_crie.modularbot.ModularBot;
 import net.dv8tion.jda.core.entities.MessageEmbed;
 import net.dv8tion.jda.core.entities.Webhook;
-import net.dv8tion.jda.core.entities.impl.MessageEmbedImpl;
 import net.dv8tion.jda.core.requests.Request;
 import net.dv8tion.jda.core.requests.Response;
 import net.dv8tion.jda.core.requests.RestAction;
@@ -78,7 +77,7 @@ public class Webhooks {
         if (embeds != null) {
             JSONArray jsonEmbeds = new JSONArray();
             Arrays.stream(embeds)
-                    .map(e -> ((MessageEmbedImpl) e).toJSONObject())
+                    .map(MessageEmbed::toJSONObject)
                     .forEach(jsonEmbeds::put);
             body.put("embeds", jsonEmbeds);
         }

@@ -1,7 +1,6 @@
 package com.jesus_crie.modularbot.log;
 
 import com.jesus_crie.modularbot.ModularBot;
-import net.dv8tion.jda.core.utils.SimpleLog;
 import org.slf4j.event.Level;
 
 public class JDALogger implements SimpleLog.LogListener {

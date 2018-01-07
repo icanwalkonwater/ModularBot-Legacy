@@ -5,63 +5,76 @@ import com.jesus_crie.modularbot.command.Command;
 import com.jesus_crie.modularbot.command.QuickCommand;
 import com.jesus_crie.modularbot.exception.*;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.listener.ModularCommandListener;
+import com.jesus_crie.modularbot.listener.ICommandHandler;
 
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Consumer;
 
+/**
+ * Manage the registered commands across the application.
+ * Used to register new commands and
+ */
 public final class CommandManager {
 
     private final List<Command> discordCommands = new ArrayList<>();
-    private final ModularCommandListener handler;
+    private final ICommandHandler handler;
 
-    public CommandManager(ModularCommandListener handler) {
+    public CommandManager(@Nonnull ICommandHandler handler) {
         this.handler = handler;
     }
 
     /**
      * Used to register some commands.
+     *
      * @param commands the commands to register.
      */
-    public void registerCommands(Command... commands) {
+    public void registerCommands(@Nonnull Command... commands) {
         discordCommands.addAll(Arrays.asList(commands));
     }
 
     /**
      * Get an unmodifiable list of all registered commands.
+     *
      * @return a list of commands.
      */
+    @Nonnull
     public List<Command> getCommands() {
         return Collections.unmodifiableList(discordCommands);
     }
 
     /**
      * Register a quick command with no argument accessible from everywhere by everybody.
-     * @param name the name of the command.
+     *
+     * @param name   the name of the command.
      * @param action the action to perform.
      */
-    public void registerQuickCommand(String name, Consumer<CommandEvent> action) {
+    public void registerQuickCommand(@Nonnull String name, @Nonnull Consumer<CommandEvent> action) {
         registerCommands(new QuickCommand(name, AccessLevel.EVERYONE, action));
     }
 
     /**
      * Register a quick command with no argument accessible from everywhere but only by admins.
-     * @param name the name of the command.
+     *
+     * @param name   the name of the command.
      * @param action the action to perform.
      */
-    public void registerAdminQuickCommand(String name, Consumer<CommandEvent> action) {
+    public void registerAdminQuickCommand(@Nonnull String name, @Nonnull Consumer<CommandEvent> action) {
         registerCommands(new QuickCommand(name, AccessLevel.ADMINISTRATOR, action));
     }
 
     /**
      * Get a command by it's alias.
+     *
      * @param alias the alias.
      * @return the corresponding command.
      */
-    public Command getCommand(final String alias) {
+    @Nullable
+    public Command getCommand(@Nonnull final String alias) {
         return discordCommands.stream()
                 .filter(c -> c.getAliases().contains(alias))
                 .findFirst()
@@ -70,9 +83,10 @@ public final class CommandManager {
 
     /**
      * Used to handle the incoming command.
+     *
      * @param event the command event.
      */
-    public void handleCommand(CommandEvent event) {
+    public void handleCommand(@Nonnull CommandEvent event) {
         try {
             handler.onCommand(event);
             handler.onCommandSuccess(event);
@@ -83,9 +97,10 @@ public final class CommandManager {
 
     /**
      * Used to handle an error that occurred before or during the execution of a command.
+     *
      * @param error the error.
      */
-    public void handleCommandError(CommandException error) {
+    public void handleCommandError(@Nonnull CommandException error) {
         if (error instanceof CommandNotFoundException)
             handler.onCommandNotFound((CommandNotFoundException) error, ((CommandNotFoundException) error).getNotFoundCommand());
         else if (error instanceof WrongContextException)

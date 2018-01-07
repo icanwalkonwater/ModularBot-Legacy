@@ -1,29 +1,28 @@
 package com.jesus_crie.modularbot.sharding;
 
 import com.jesus_crie.modularbot.ModularBot;
-import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.config.IConfigHandler;
 import com.jesus_crie.modularbot.listener.CommandListener;
 import com.jesus_crie.modularbot.listener.DecoratorDeleteListener;
 import com.jesus_crie.modularbot.listener.ReadyListener;
 import com.jesus_crie.modularbot.utils.ModularThreadFactory;
 import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.AccountType;
-import net.dv8tion.jda.core.ShardedRateLimiter;
 import net.dv8tion.jda.core.entities.User;
 import net.dv8tion.jda.core.entities.impl.JDAImpl;
 import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.requests.SessionReconnectQueue;
 import net.dv8tion.jda.core.utils.Checks;
+import net.dv8tion.jda.core.utils.SessionController;
 import okhttp3.OkHttpClient;
 
+import javax.annotation.Nullable;
 import javax.security.auth.login.LoginException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
+@Deprecated
 public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
 
     private boolean isReady;
@@ -31,32 +30,27 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
     private final ThreadPoolExecutor commandPool;
 
     /**
-     * Package-Private constructor inherited from {@link JDAImpl}.
-     * @see JDAImpl#JDAImpl(AccountType, OkHttpClient.Builder, WebSocketFactory, ShardedRateLimiter, boolean, boolean, boolean, boolean, boolean, int, int)
+     * @see JDAImpl#JDAImpl(AccountType, String, SessionController, OkHttpClient.Builder, WebSocketFactory, boolean, boolean, boolean, boolean, boolean, boolean, int, int, ConcurrentMap)
      */
-    ModularShard(AccountType accountType, OkHttpClient.Builder httpClientBuilder, WebSocketFactory wsFactory, ShardedRateLimiter rateLimiter, boolean autoReconnect, boolean audioEnabled, boolean useShutdownHook, boolean bulkDeleteSplittingEnabled, int corePoolSize, int maxReconnectDelay) {
-        super(accountType, httpClientBuilder, wsFactory, rateLimiter, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, true, corePoolSize, maxReconnectDelay);
+    public ModularShard(AccountType accountType, String token, SessionController controller, OkHttpClient.Builder httpClientBuilder, WebSocketFactory wsFactory, boolean autoReconnect, boolean audioEnabled, boolean useShutdownHook, boolean bulkDeleteSplittingEnabled, boolean retryOnTimeout, boolean enableMDC, int corePoolSize, int maxReconnectDelay, ConcurrentMap<String, String> contextMap) {
+        super(accountType, token, controller, httpClientBuilder, wsFactory, autoReconnect, audioEnabled, useShutdownHook, bulkDeleteSplittingEnabled, retryOnTimeout, enableMDC, corePoolSize, maxReconnectDelay, contextMap);
         sInfos = new ModularShardInfos();
         commandPool = (ThreadPoolExecutor) Executors.newCachedThreadPool();
     }
 
-    /**
-     * @see JDAImpl#login(String, ShardInfo, SessionReconnectQueue)
-     */
-    @Override
     public void login(String token, ShardInfo shardInfo, SessionReconnectQueue reconnectQueue) throws LoginException, RateLimitedException {
         // Ready listener
         ReadyListener listener = new ReadyListener();
         addEventListener(listener);
 
-        super.login(token, shardInfo, reconnectQueue);
+        //super.login(token, shardInfo, reconnectQueue);
         listener.get();
         ModularBot.logger().info("Start", f("Shard %s is ready !", sInfos.getShardString()));
         isReady = true;
         removeEventListener(listener);
 
-        pool.setThreadFactory(new ModularThreadFactory(this, "Main", true));
-        commandPool.setThreadFactory(new ModularThreadFactory(this, "Command", true));
+        pool.setThreadFactory(new ModularThreadFactory(this, "Main"));
+        commandPool.setThreadFactory(new ModularThreadFactory(this, "Command"));
 
         // Listeners
         addEventListener(new CommandListener());
@@ -67,6 +61,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
      * @see JDAImpl#getIdentifierString()
      */
     @Override
+    @Nullable
     public String getIdentifierString() {
         if (shardInfo != null)
             return f("%s %s", ModularBot.getConfig().getAppName(), sInfos.getShardString());
@@ -179,7 +174,7 @@ public class ModularShard extends JDAImpl implements Comparable<ModularShard> {
 
     @Override
     public String toString() {
-        ConfigHandler c = ModularBot.getConfig();
+        IConfigHandler c = ModularBot.getConfig();
         return f("%s v%s Shard %s #%s", c.getAppName(), c.getVersion().toString(), sInfos.getShardString(), hashCode());
     }
 }

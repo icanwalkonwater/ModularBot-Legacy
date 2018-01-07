@@ -1,11 +1,11 @@
 package com.jesus_crie.modularbot;
 
-import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.config.IConfigHandler;
 import com.jesus_crie.modularbot.config.SimpleConfig;
 import com.jesus_crie.modularbot.config.Version;
 import com.jesus_crie.modularbot.listener.CommandEvent;
-import com.jesus_crie.modularbot.listener.DefaultModularCommandListener;
-import com.jesus_crie.modularbot.listener.ModularCommandListener;
+import com.jesus_crie.modularbot.listener.DefaultCommandHandler;
+import com.jesus_crie.modularbot.listener.ICommandHandler;
 import com.jesus_crie.modularbot.log.ConsoleLogger;
 import com.jesus_crie.modularbot.log.DefaultLogHandler;
 import com.jesus_crie.modularbot.log.Log;
@@ -18,9 +18,9 @@ import static com.jesus_crie.modularbot.utils.F.f;
 public class ModularBuilder {
 
     private final String token;
-    private ConfigHandler config;
+    private IConfigHandler config;
     private LogHandler logger;
-    private ModularCommandListener command;
+    private ICommandHandler command;
     private boolean useAudio = false;
     private boolean useStats = false;
     private boolean useDecoratorCache = false;
@@ -48,10 +48,10 @@ public class ModularBuilder {
 
     /**
      * Use if you want to use your custom config system.
-     * @param handler any object that implements {@link ConfigHandler}
+     * @param handler any object that implements {@link IConfigHandler}
      * @return the current builder.
      */
-    public ModularBuilder useCustomConfigHandler(ConfigHandler handler) {
+    public ModularBuilder useCustomConfigHandler(IConfigHandler handler) {
         config = handler;
         return this;
     }
@@ -70,11 +70,11 @@ public class ModularBuilder {
 
     /**
      * If you want to customize the way that command errors are handled and printed.
-     * It can also act like a middleware with {@link ModularCommandListener#onCommand(CommandEvent)}.
-     * @param handler an implementation of {@link ModularCommandListener}.
+     * It can also act like a middleware with {@link ICommandHandler#onCommand(CommandEvent)}.
+     * @param handler an implementation of {@link ICommandHandler}.
      * @return the current builder.
      */
-    public ModularBuilder useCustomCommandHandler(ModularCommandListener handler) {
+    public ModularBuilder useCustomCommandHandler(ICommandHandler handler) {
         command = handler;
         return this;
     }
@@ -146,11 +146,11 @@ public class ModularBuilder {
             logger = new DefaultLogHandler();
         logger.registerListener(new ConsoleLogger());
         if (command == null)
-            command = new DefaultModularCommandListener();
+            command = new DefaultCommandHandler();
         if (useStats)
             Stats.setEnable(true);
         if (readyStatus == null)
-            readyStatus = Game.of(f("%shelp - v%s", config.getPrefixForGuild(null), config.getVersion().toString()));
+            readyStatus = Game.playing(f("%shelp - v%s", config.getPrefixForGuild(null), config.getVersion().toString()));
 
         return new ModularBot(token, config, logger, command, readyStatus, useAudio, useDecoratorCache, useWebhook);
     }

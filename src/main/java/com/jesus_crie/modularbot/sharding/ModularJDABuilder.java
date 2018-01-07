@@ -4,7 +4,6 @@ import com.neovisionaries.ws.client.WebSocketFactory;
 import net.dv8tion.jda.core.*;
 import net.dv8tion.jda.core.audio.factory.IAudioSendFactory;
 import net.dv8tion.jda.core.entities.Game;
-import net.dv8tion.jda.core.exceptions.RateLimitedException;
 import net.dv8tion.jda.core.hooks.IEventManager;
 import net.dv8tion.jda.core.managers.impl.PresenceImpl;
 import net.dv8tion.jda.core.requests.SessionReconnectQueue;
@@ -16,6 +15,7 @@ import javax.security.auth.login.LoginException;
  * Copy paste from super but with {@link ModularJDABuilder} instead of {@link JDABuilder}
  * and {@link ModularShard} instead of {@link net.dv8tion.jda.core.entities.impl.JDAImpl}.
  */
+@Deprecated
 public class ModularJDABuilder extends JDABuilder {
 
     /**
@@ -209,11 +209,11 @@ public class ModularJDABuilder extends JDABuilder {
      * @see JDABuilder#buildAsync()
      */
     @Override
-    public ModularShard buildAsync() throws LoginException, IllegalArgumentException, RateLimitedException {
+    public ModularShard buildAsync() throws LoginException, IllegalArgumentException {
         OkHttpClient.Builder httpClientBuilder = this.httpClientBuilder == null ? new OkHttpClient.Builder() : this.httpClientBuilder;
         WebSocketFactory wsFactory = this.wsFactory == null ? new WebSocketFactory() : this.wsFactory;
-        ModularShard shard = new ModularShard(accountType, httpClientBuilder, wsFactory, shardRateLimiter, autoReconnect, enableVoice, enableShutdownHook,
-                enableBulkDeleteSplitting, corePoolSize, maxReconnectDelay);
+        ModularShard shard = null/*new ModularShard(accountType, httpClientBuilder, wsFactory, shardRateLimiter, autoReconnect, enableVoice, enableShutdownHook,
+                enableBulkDeleteSplitting, corePoolSize, maxReconnectDelay)*/;
 
         if (eventManager != null)
             shard.setEventManager(eventManager);
@@ -228,7 +228,10 @@ public class ModularJDABuilder extends JDABuilder {
                 .setCacheGame(game)
                 .setCacheIdle(idle)
                 .setCacheStatus(status);
-        shard.login(token, shardInfo, reconnectQueue);
+
+        try {
+            shard.login(token, shardInfo, reconnectQueue);
+        } catch (Exception ignore) {}
         return shard;
     }
 
@@ -236,7 +239,7 @@ public class ModularJDABuilder extends JDABuilder {
      * @see JDABuilder#buildBlocking()
      */
     @Override
-    public ModularShard buildBlocking() throws LoginException, IllegalArgumentException, InterruptedException, RateLimitedException {
+    public ModularShard buildBlocking() throws LoginException, IllegalArgumentException, InterruptedException {
         ModularShard shard = buildAsync();
         while(shard.getStatus() != JDA.Status.CONNECTED)
         {

@@ -1,7 +1,7 @@
 package com.jesus_crie.modularbot.command;
 
 import com.jesus_crie.modularbot.ModularBot;
-import com.jesus_crie.modularbot.config.ConfigHandler;
+import com.jesus_crie.modularbot.config.IConfigHandler;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.User;
@@ -13,7 +13,7 @@ import java.util.function.Predicate;
 public class AccessLevel {
 
     /**
-     * Only the user with the id stored in {@link ConfigHandler#getCreatorId()} can pass this.
+     * Only the user with the id stored in {@link IConfigHandler#getCreatorId()} can pass this.
      */
     public static final AccessLevel CREATOR = new AccessLevel(u -> ModularBot.getConfig().getCreatorId() == u.getIdLong());
 

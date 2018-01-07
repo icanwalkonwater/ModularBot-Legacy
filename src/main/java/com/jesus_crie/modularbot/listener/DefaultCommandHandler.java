@@ -7,7 +7,7 @@ import net.dv8tion.jda.core.exceptions.PermissionException;
 
 import static com.jesus_crie.modularbot.utils.F.f;
 
-public class DefaultModularCommandListener implements ModularCommandListener {
+public class DefaultCommandHandler implements ICommandHandler {
 
     @Override
     public void onCommand(CommandEvent event) throws WrongContextException, LowAccessLevelException, MissingPermissionException, CommandFailedException, NoPatternException {

@@ -14,7 +14,7 @@ public class CommandEvent extends MessageReceivedEvent {
     private final MessageReceivedEvent triggerEvent;
     private final String[] rawArgs;
 
-    public CommandEvent(Command command, MessageReceivedEvent triggerEvent, String[] rawArgs) {
+    CommandEvent(Command command, MessageReceivedEvent triggerEvent, String[] rawArgs) {
         super(triggerEvent.getJDA(), triggerEvent.getResponseNumber(), triggerEvent.getMessage());
         this.command = command;
         this.triggerEvent = triggerEvent;
@@ -71,8 +71,8 @@ public class CommandEvent extends MessageReceivedEvent {
     @Override
     public String toString() {
         if (triggerEvent.getGuild() != null)
-            return f("%s from \"%s\" executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getGuild().getName(), triggerEvent.getMessage().getRawContent());
+            return f("%s from \"%s\" executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getGuild().getName(), triggerEvent.getMessage().getContentRaw());
         else
-            return f("%s executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getMessage().getRawContent());
+            return f("%s executed \"%s\"", MiscUtils.stringifyUser(triggerEvent.getAuthor()), triggerEvent.getMessage().getContentRaw());
     }
 }
