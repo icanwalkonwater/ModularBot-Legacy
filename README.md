@@ -1,3 +1,5 @@
+# This project is deprecated, consider using the [V2](https://github.com/JesusCrie/ModularBot_v2)
+
 [![Download](https://api.bintray.com/packages/spacecookie/generic/modularbot/images/download.svg)](https://bintray.com/spacecookie/generic/modularbot/_latestVersion)
 [![JDA Version](https://img.shields.io/badge/JDA-3.3.1__303-brightgreen.svg)](https://github.com/DV8FromTheWorld/JDA)
 [![LavaPlayer Version](https://img.shields.io/badge/LavaPlayer-1.2.44-brightgreen.svg)](https://github.com/sedmelluq/lavaplayer)
